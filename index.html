@@ -385,11 +385,6 @@ button,input,select,label{touch-action:manipulation}
   tbody td:first-child::before,tbody td:last-child::before,tbody td[colspan]::before{content:none!important}
   tbody td[colspan]{justify-content:center;border-top:0;text-align:center!important}
   #shifts-table-body td:nth-child(2)::before,#admin-team-table-body td:nth-child(2)::before{content:"Horario"}
-  #shifts-table-body td:nth-child(3)::before{content:"Total"}
-  #shifts-table-body td:nth-child(4)::before{content:"Nocturnas"}
-  #shifts-table-body td:nth-child(5)::before{content:"Extras"}
-  #shifts-table-body td:nth-child(6)::before{content:"Recargos"}
-  #shifts-table-body td:nth-child(7)::before{content:"Estado"}
   #payments-table-body td:nth-child(2)::before{content:"Fecha de pago"}
   #payments-table-body td:nth-child(3)::before,#admin-team-table-body td:nth-child(3)::before{content:"Salario base"}
   #payments-table-body td:nth-child(4)::before,#admin-team-table-body td:nth-child(4)::before{content:"Noct. + extras"}
@@ -910,6 +905,86 @@ html body .profile-tile {
 }
 
   </style>
+<style>
+/* ===== Tarjetas de turnos ===== */
+.shift-card{background:var(--fill);border:.5px solid var(--sep);border-radius:16px;overflow:hidden;transition:box-shadow .2s,background .2s}
+.shift-card.is-today{box-shadow:inset 3px 0 0 var(--blue)}
+.shift-card.is-open{background:rgba(22,163,74,.06)}
+.shift-card .shift-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:0;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.shift-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:46px;height:46px;border-radius:12px;background:rgba(22,163,74,.12);line-height:1}
+.shift-date b{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.shift-date small{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--label3);margin-top:3px}
+.shift-main{display:flex;flex-direction:column;gap:5px;min-width:0}
+.shift-time{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.shift-tags{display:flex;flex-wrap:wrap;gap:5px}
+.shift-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:9999px}
+.shift-tag i{font-size:9px}
+.tag-night{color:#4f46e5;background:rgba(79,70,229,.1)}
+.tag-holiday{color:#7c3aed;background:rgba(124,58,237,.1)}
+.tag-today{color:#15803d;background:rgba(22,163,74,.13)}
+.shift-total{display:flex;align-items:center;gap:8px}
+.shift-total b{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.shift-total i{font-size:11px;color:var(--label3);transition:transform .25s}
+.shift-card.is-open .shift-total i{transform:rotate(180deg)}
+.shift-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+.shift-card.is-open .shift-body{grid-template-rows:1fr}
+.shift-body-inner{overflow:hidden;min-height:0}
+.shift-detail{margin:0 14px;padding:10px 0 12px;border-top:.5px solid var(--sep);display:flex;flex-direction:column;gap:6px;font-size:13px}
+.shift-detail .row{display:flex;justify-content:space-between;gap:12px}
+.shift-detail .row span:first-child{color:var(--label3)}
+.shift-detail .row span:last-child{font-variant-numeric:tabular-nums;text-align:right}
+.shift-detail .row.sum{margin-top:4px;padding-top:8px;border-top:.5px dashed var(--sep);font-weight:700}
+.shift-detail .row.sum span:first-child{color:inherit}
+.shift-detail .row.sum span:last-child{color:#15803d}
+.shift-note{font-size:12px;color:var(--label3);font-style:italic}
+.shift-del{align-self:flex-end;margin-top:2px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#e11d48;background:rgba(225,29,72,.08);border:0;padding:6px 12px;border-radius:10px}
+.shift-empty{padding:28px 12px;text-align:center;color:var(--label3);font-size:14px;border:.5px dashed var(--sep);border-radius:16px}
+@media (prefers-reduced-motion:reduce){.shift-body,.shift-total i{transition:none}}
+</style>
+<style>
+/* ===== Destino de horas excedentes ===== */
+.ot-box{padding:12px;border-radius:12px;background:rgba(22,163,74,.06);border:.5px solid var(--sep)}
+.ot-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ot-seg button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:12px;background:#fff;color:inherit;border:1px solid var(--sep);font-size:13px;font-weight:600;line-height:1.2;text-align:center;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s}
+.ot-seg button i{font-size:14px;color:var(--label3)}
+.ot-seg button small{font-size:10.5px;font-weight:500;color:var(--label3)}
+.ot-seg button.is-active{background:rgba(22,163,74,.12);border-color:#16a34a;color:#15803d}
+.ot-seg button.is-active i,.ot-seg button.is-active small{color:#15803d}
+.ot-seg-sm button{flex-direction:row;justify-content:center;gap:6px;padding:7px 8px;font-size:12px;border-radius:10px}
+.shift-dest{display:flex;flex-direction:column;gap:6px;margin:2px 0}
+.shift-dest>span{color:var(--label3)}
+.tag-comp{color:#0f766e;background:rgba(20,184,166,.13)}
+.tag-extra{color:#b45309;background:rgba(245,158,11,.16)}
+</style>
+<style>
+/* ===== Control de Gastos ===== */
+.exp-switch{position:relative;width:46px;height:26px;border-radius:9999px;background:#cfdcd3;border:0;padding:0;transition:background .2s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.exp-switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.exp-switch.is-on{background:#16a34a}
+.exp-switch.is-on span{transform:translateX(20px)}
+button.exp-switch{min-width:46px;min-height:26px}
+.exp-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:var(--fill);border:.5px solid var(--sep);border-radius:16px}
+.exp-ico{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:rgba(225,29,72,.1);color:#e11d48;font-size:16px}
+.exp-ico.adv{background:rgba(217,119,6,.13);color:#b45309}
+.exp-main{min-width:0}
+.exp-concept{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-meta{font-size:11.5px;color:var(--label3);margin-top:1px}
+.exp-after{font-size:11.5px;color:var(--label3);margin-top:3px}
+.exp-after b{color:#15803d;font-variant-numeric:tabular-nums}
+.exp-amt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.exp-amt b{font-size:15px;font-weight:700;color:#e11d48;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exp-amt button{background:none;border:0;color:var(--label3);font-size:13px;padding:4px 6px}
+.exp-impact{padding:14px;border-radius:16px;background:rgba(22,163,74,.05);border:.5px solid var(--sep)}
+.exp-bar{height:8px;border-radius:9999px;background:rgba(22,101,52,.12);overflow:hidden}
+.exp-bar>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#f59e0b,#e11d48);transition:width .5s cubic-bezier(.16,1,.3,1)}
+.exp-sum{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.exp-sum .row{display:flex;justify-content:space-between;gap:12px}
+.exp-sum .row span:last-child{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.exp-sum .row.neg span:last-child{color:#e11d48}
+.exp-sum .row.total{margin-top:2px;padding-top:8px;border-top:.5px dashed var(--sep);font-weight:700;font-size:14px}
+.exp-sum .row.total span:last-child{color:#15803d}
+@media (max-width:767px){#admin-team-table-body td:nth-child(4)::before{content:"Estado de pago"}#admin-team-table-body td:nth-child(5)::before{content:"Control de gastos"}}
+</style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200 min-h-screen flex flex-col">
 
@@ -948,41 +1023,79 @@ html body .profile-tile {
         <p class="text-[11px] text-slate-600 mt-1">Versión <span data-app-version></span></p>
       </div>
 
+      <!-- PANEL 1: INGRESAR -->
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Usuario</label>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Correo electrónico</label>
           <div class="relative group">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 group-focus-within:text-emerald-400 transition">
-              <i class="fa-solid fa-user"></i>
-            </span>
-            <input type="text" id="login-username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" required placeholder="Usuario"
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 group-focus-within:text-emerald-400 transition"><i class="fa-solid fa-envelope"></i></span>
+            <input type="text" inputmode="email" id="login-username" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" required placeholder="tu@correo.com"
               class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition" />
           </div>
         </div>
-
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Contraseña</label>
           <div class="relative group">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 group-focus-within:text-emerald-400 transition">
-              <i class="fa-solid fa-lock"></i>
-            </span>
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 group-focus-within:text-emerald-400 transition"><i class="fa-solid fa-lock"></i></span>
             <input type="password" id="login-password" autocomplete="current-password" enterkeyhint="go" required placeholder="••••••"
               class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition" />
           </div>
         </div>
-
-        <button type="submit"
-          class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/25 transition-all duration-200 transform active:scale-[0.99] flex items-center justify-center gap-2">
-          <span>Ingresar al Sistema</span>
-          <i class="fa-solid fa-arrow-right"></i>
+        <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/25 transition-all duration-200 transform active:scale-[0.99] flex items-center justify-center gap-2">
+          <span>Ingresar al Sistema</span><i class="fa-solid fa-arrow-right"></i>
         </button>
+        <p class="text-center text-xs text-slate-400">¿No tienes cuenta?
+          <button type="button" onclick="showAuthPanel('register')" class="text-emerald-400 font-semibold">Regístrate</button>
+        </p>
       </form>
 
-      <!-- Perfiles -->
-      <div class="mt-8 pt-6 border-t border-slate-800/80">
-        <p class="text-[11px] font-semibold text-center uppercase tracking-wider text-slate-400 mb-3">Elige tu perfil</p>
-        <div id="profile-picker" class="grid grid-cols-2 gap-2.5"></div>
-      </div>
+      <!-- PANEL 2: REGISTRO (salario base obligatorio) -->
+      <form id="register-form" class="hidden space-y-4" novalidate>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Nombre</label>
+          <input type="text" id="reg-name" autocomplete="name" required placeholder="Tu nombre"
+            class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Correo electrónico</label>
+          <input type="email" id="reg-email" autocomplete="email" autocapitalize="none" required placeholder="tu@correo.com"
+            class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Contraseña</label>
+            <input type="password" id="reg-password" autocomplete="new-password" required minlength="4" placeholder="Mín. 4"
+              class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Repetir</label>
+            <input type="password" id="reg-password2" autocomplete="new-password" required minlength="4" placeholder="Repetir"
+              class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Salario base mensual (Gs.) *</label>
+          <input type="number" id="reg-salary" inputmode="numeric" min="1" step="1" required placeholder="Ej: 2798309"
+            class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
+        </div>
+        <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2">
+          <span>Crear cuenta</span><i class="fa-solid fa-user-plus"></i>
+        </button>
+        <p class="text-center text-xs text-slate-400">¿Ya tienes cuenta?
+          <button type="button" onclick="showAuthPanel('login')" class="text-emerald-400 font-semibold">Ingresar</button>
+        </p>
+      </form>
+
+      <!-- PANEL 3: SALARIO INICIAL (cuentas creadas por un admin) -->
+      <form id="salary-form" class="hidden space-y-4" novalidate>
+        <p class="text-sm text-slate-300 text-center">Antes de continuar, ingresa tu <strong>salario base mensual</strong>. Es privado y solo se guarda en este dispositivo.</p>
+        <input type="number" id="setup-salary" inputmode="numeric" min="1" step="1" required placeholder="Salario base (Gs.)"
+          class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
+        <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2">
+          <span>Guardar y continuar</span><i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <p class="text-center text-xs"><button type="button" onclick="logout()" class="text-slate-400">Usar otra cuenta</button></p>
+      </form>
     </div>
   </div>
 
@@ -1036,6 +1149,11 @@ html body .profile-tile {
             class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200">
             <i class="fa-solid fa-file-invoice-dollar"></i>
             <span>Historial y Recibos</span>
+          </button>
+          <button data-tab="expenses" data-short="Gastos" id="tab-expenses" onclick="switchTab('expenses')"
+            class="tab-btn hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Control de Gastos</span>
           </button>
           <button data-tab="admin-team" data-short="Equipo" id="tab-admin-team" onclick="switchTab('admin-team')"
             class="tab-btn hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200">
@@ -1200,14 +1318,11 @@ html body .profile-tile {
           <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-800">
             <div>
               <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-umbrella-beach text-emerald-400"></i><span>Compensatorios</span></h3>
-              <p class="text-xs text-slate-400 mt-1">En vez de cobrar las horas extras, se acumulan: cada 8 horas = 1 día libre todo pagado.</p>
+              <p class="text-xs text-slate-400 mt-1">Las horas de un turno que superan las 8 h van por defecto a esta bolsa: cada 8 horas acumuladas = 1 día libre pagado. Puedes elegir cobrarlas turno por turno.</p>
             </div>
-            <div class="self-start sm:self-auto">
-              <div class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">Mis horas extras de <span id="comp-month-label"></span></div>
-              <div class="inline-flex rounded-xl bg-slate-950 border border-slate-800 p-1 gap-1">
-                <button type="button" id="comp-mode-pay" onclick="setCompMode(false)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold">Cobrarlas</button>
-                <button type="button" id="comp-mode-comp" onclick="setCompMode(true)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold">Compensatorio</button>
-              </div>
+            <div class="self-start sm:self-auto sm:text-right">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">Excedentes de <span id="comp-month-label"></span></div>
+              <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400"><i class="fa-solid fa-star text-[10px]"></i>Compensatorio por defecto</span>
             </div>
           </div>
           <div id="comp-body" class="mt-4"></div>
@@ -1252,6 +1367,19 @@ html body .profile-tile {
                 <span class="text-xs font-medium text-slate-200">Es Domingo o Feriado Nacional (+100%)</span>
               </label>
 
+              <!-- Destino de las horas excedentes: solo aparece si el turno supera 8 h -->
+              <div id="ot-destination" class="hidden ot-box space-y-2">
+                <div class="text-xs font-semibold flex items-center justify-between gap-2">
+                  <span><i class="fa-regular fa-clock mr-1.5"></i>Excedente: <span id="ot-hours" class="font-mono">0.0 h</span></span>
+                  <span class="text-[10px] font-medium text-slate-400">¿A dónde van esas horas?</span>
+                </div>
+                <input type="hidden" id="shift-ot-mode" value="comp" />
+                <div class="ot-seg" role="radiogroup" aria-label="Destino de las horas excedentes">
+                  <button type="button" id="ot-btn-comp" role="radio" aria-checked="true" onclick="setShiftFormMode('comp')" class="is-active"><i class="fa-solid fa-umbrella-beach"></i><span>Compensatorio</span><small>Predeterminado</small></button>
+                  <button type="button" id="ot-btn-pay" role="radio" aria-checked="false" onclick="setShiftFormMode('pay')"><i class="fa-solid fa-money-bill-wave"></i><span>Horas extras</span><small>Se pagan en Gs.</small></button>
+                </div>
+              </div>
+
               <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1">Observación (Opcional)</label>
                 <input type="text" id="shift-note" placeholder="Ej: Cobertura especial" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500" />
@@ -1270,28 +1398,12 @@ html body .profile-tile {
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
               <div>
                 <h3 class="text-base font-bold text-white">Registro de Turnos y Asistencia</h3>
-                <p class="text-xs text-slate-400">Detalle de horas normales, nocturnas y extras del período</p>
+                <p class="text-xs text-slate-400">Toca un turno para ver el desglose</p>
               </div>
               <span id="shifts-count-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 self-start sm:self-auto">0 turnos</span>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400">
-                    <th class="py-3 px-3">Fecha</th>
-                    <th class="py-3 px-3">Horario</th>
-                    <th class="py-3 px-3 text-right">Total</th>
-                    <th class="py-3 px-3 text-right">Noct.</th>
-                    <th class="py-3 px-3 text-right">Extras</th>
-                    <th class="py-3 px-3 text-right">Recargos (Gs.)</th>
-                    <th class="py-3 px-3 text-center">Estado</th>
-                    <th class="py-3 px-3 text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody id="shifts-table-body" class="divide-y divide-slate-800/70 text-xs sm:text-sm"></tbody>
-              </table>
-            </div>
+            <div id="shifts-list" class="space-y-2.5"></div>
           </div>
         </div>
       </section>
@@ -1330,6 +1442,75 @@ html body .profile-tile {
         </div>
       </section>
 
+      <!-- ================= TAB: CONTROL DE GASTOS (solo Admin / usuarios autorizados) ================= -->
+      <section id="section-expenses" class="tab-content hidden space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Neto antes de gastos</span>
+            <div id="exp-kpi-before" class="text-xl sm:text-2xl font-extrabold font-mono text-white mt-2">Gs. 0</div>
+            <div class="text-xs text-slate-400 mt-1.5">Salario + recargos − vales</div>
+          </div>
+          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+            <span class="text-xs font-semibold uppercase tracking-wider text-rose-400">Descontado por gastos</span>
+            <div id="exp-kpi-spent" class="text-xl sm:text-2xl font-extrabold font-mono text-rose-400 mt-2">- Gs. 0</div>
+            <div id="exp-kpi-count" class="text-xs text-slate-400 mt-1.5">0 movimientos</div>
+          </div>
+          <div class="bg-gradient-to-br from-emerald-950/70 to-slate-900 backdrop-blur-xl border border-emerald-500/40 rounded-2xl p-5 shadow-xl shadow-emerald-950/30">
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Neto final a cobrar</span>
+            <div id="exp-kpi-net" class="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400 mt-2">Gs. 0</div>
+            <div id="exp-kpi-status" class="text-xs text-emerald-200/80 mt-1.5">Pendiente de liquidación</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Formulario -->
+          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 h-fit shadow-xl">
+            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-1"><i class="fa-solid fa-circle-plus text-emerald-400"></i><span>Registrar movimiento</span></h3>
+            <p class="text-xs text-slate-400 mb-4">Cada registro se descuenta al instante de tu neto de <strong id="exp-month-label" class="text-slate-200"></strong>.</p>
+
+            <form id="exp-form" onsubmit="addExpense(event)" class="space-y-3.5" autocomplete="off">
+              <input type="hidden" id="exp-type" value="gasto" />
+              <div class="ot-seg" role="radiogroup" aria-label="Tipo de movimiento">
+                <button type="button" id="exp-btn-gasto" role="radio" aria-checked="true" onclick="setExpenseType('gasto')" class="is-active"><i class="fa-solid fa-receipt"></i><span>Gasto</span><small>Compra o consumo</small></button>
+                <button type="button" id="exp-btn-anticipo" role="radio" aria-checked="false" onclick="setExpenseType('anticipo')"><i class="fa-solid fa-hand-holding-dollar"></i><span>Anticipo</span><small>Adelanto de sueldo</small></button>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Concepto</label>
+                <input type="text" id="exp-concept" list="exp-concept-list" required maxlength="60" placeholder="Ej: Almuerzo, transporte, adelanto…" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+                <datalist id="exp-concept-list"><option value="Almuerzo"></option><option value="Transporte"></option><option value="Farmacia"></option><option value="Uniforme"></option><option value="Adelanto de sueldo"></option><option value="Otro"></option></datalist>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Monto (Gs.)</label>
+                  <input type="number" id="exp-amount" required min="1" step="1" inputmode="numeric" oninput="previewExpenseImpact()" placeholder="0" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm font-mono text-rose-300 focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Fecha</label>
+                  <input type="date" id="exp-date" required class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+                </div>
+              </div>
+              <div id="exp-preview" class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs space-y-1"></div>
+              <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all duration-200 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-minus"></i><span>Registrar y descontar del neto</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Historial e impacto -->
+          <div class="lg:col-span-2 bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 class="text-base font-bold text-white">Historial y efecto en tu liquidación</h3>
+                <p class="text-xs text-slate-400">Cada movimiento muestra cuánto te queda por cobrar después de aplicarlo</p>
+              </div>
+              <span id="exp-count-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 self-start sm:self-auto">0 movimientos</span>
+            </div>
+            <div id="exp-impact" class="mb-4"></div>
+            <div id="exp-list" class="space-y-2.5"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ================= TAB 4: ADMIN TEAM ================= -->
       <section id="section-admin-team" class="tab-content hidden space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1354,7 +1535,7 @@ html body .profile-tile {
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
               <h3 class="text-base sm:text-lg font-bold text-white">Gestión de Compañeros y Liquidaciones</h3>
-              <p class="text-xs text-slate-400">Administra usuarios, horarios y estado de pago. El salario de cada persona es privado.</p>
+              <p class="text-xs text-slate-400">Administra usuarios, horarios, estado de pago y quién puede usar el Control de Gastos. El salario de cada persona es privado. Si desactivas el acceso, los gastos ya registrados siguen descontándose de su liquidación.</p>
             </div>
             <button onclick="openEmployeeModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition self-start sm:self-auto">
               <i class="fa-solid fa-user-plus"></i>
@@ -1370,6 +1551,7 @@ html body .profile-tile {
                   <th class="py-3 px-3">Horario</th>
                   <th class="py-3 px-3 text-right">Compensatorios</th>
                   <th class="py-3 px-3 text-center">Estado Pago</th>
+                  <th class="py-3 px-3 text-center">Control de Gastos</th>
                   <th class="py-3 px-3 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -1538,8 +1720,8 @@ html body .profile-tile {
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Usuario</label>
-            <input type="text" id="emp-username" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Correo electrónico</label>
+            <input type="email" id="emp-username" autocapitalize="none" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Contraseña</label>
@@ -1581,6 +1763,11 @@ html body .profile-tile {
           </div>
         </div>
 
+        <label class="flex items-center gap-2.5 p-3 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
+          <input type="checkbox" id="emp-expenses" class="w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500" />
+          <span class="text-xs font-medium text-slate-200">Autorizar el módulo <strong>Control de Gastos</strong> (los gastos se descuentan de su neto)</span>
+        </label>
+
         <div id="emp-advance-row" class="hidden">
           <label class="block text-xs font-semibold text-slate-300 mb-1">Mi Anticipo del Mes (Gs.)</label>
           <input type="number" id="emp-advance" min="0" step="1" inputmode="numeric" value="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-rose-300 focus:outline-none focus:border-emerald-500" />
@@ -1605,7 +1792,7 @@ html body .profile-tile {
 
   <!-- ================= SCRIPTS ================= -->
   <script>
-    const APP_VERSION = '1.1.0';
+    const APP_VERSION = '1.3.0';
     const STORAGE_KEY = 'control_salario_pyg_v3';
 
     function getCurrentMonthStr() {
@@ -1626,28 +1813,10 @@ html body .profile-tile {
           holidayPct: 100
         },
         compUsed: [],
-        users: [
-          { id: 'u-maikel', name: 'Maikel', username: 'maikel', password: '123', role: 'admin', position: 'Colaborador', baseSalary: 4500000, shiftName: 'Turno Mixto', shiftHours: '14:00 a 22:00', shiftDays: 'Lun a Sáb' },
-          { id: 'u-fabiola', name: 'Fabiola', username: 'fabiola', password: '123', role: 'boss', position: 'Colaboradora', baseSalary: 4000000, shiftName: 'Turno Mañana', shiftHours: '06:00 a 14:00', shiftDays: 'Lun a Vie' },
-          { id: 'u-alejandro', name: 'Alejandro', username: 'alejandro', password: '123', role: 'employee', position: 'Operador', baseSalary: 3200000, shiftName: 'Turno Noche Fijo', shiftHours: '22:00 a 06:00', shiftDays: 'Lun a Sáb' },
-          { id: 'u-juvencio', name: 'Juvencio', username: 'juvencio', password: '123', role: 'employee', position: 'Operador', baseSalary: 2950000, shiftName: 'Turno Rotativo', shiftHours: '16:00 a 00:00', shiftDays: 'Mar a Dom' }
-        ],
-        shifts: [
-          { id: 's-1', userId: 'u-maikel', date: `${currentMonth}-03`, start: '14:00', end: '23:00', isHoliday: false, note: 'Cierre' },
-          { id: 's-2', userId: 'u-maikel', date: `${currentMonth}-08`, start: '15:00', end: '00:00', isHoliday: false, note: 'Supervisión' },
-          { id: 's-3', userId: 'u-fabiola', date: `${currentMonth}-02`, start: '06:00', end: '15:00', isHoliday: false, note: 'Apertura' },
-          { id: 's-4', userId: 'u-fabiola', date: `${currentMonth}-09`, start: '06:00', end: '14:00', isHoliday: false, note: 'Control de turnos' },
-          { id: 's-5', userId: 'u-alejandro', date: `${currentMonth}-02`, start: '22:00', end: '06:00', isHoliday: false, note: 'Guardia noche' },
-          { id: 's-6', userId: 'u-alejandro', date: `${currentMonth}-06`, start: '20:00', end: '06:00', isHoliday: false, note: 'Guardia + extras' },
-          { id: 's-7', userId: 'u-juvencio', date: `${currentMonth}-03`, start: '16:00', end: '01:00', isHoliday: false, note: 'Soporte' },
-          { id: 's-8', userId: 'u-juvencio', date: `${currentMonth}-10`, start: '16:00', end: '00:00', isHoliday: false, note: 'Soporte' }
-        ],
-        monthlyMeta: {
-          [`u-maikel_${currentMonth}`]: { advance: 0, paid: false, paidDate: null },
-          [`u-fabiola_${currentMonth}`]: { advance: 0, paid: false, paidDate: null },
-          [`u-alejandro_${currentMonth}`]: { advance: 300000, paid: false, paidDate: null },
-          [`u-juvencio_${currentMonth}`]: { advance: 0, paid: false, paidDate: null }
-        }
+        users: [],
+        shifts: [],
+        expenses: [],
+        monthlyMeta: {}
       };
     }
 
@@ -1658,7 +1827,7 @@ html body .profile-tile {
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) { const st = JSON.parse(raw); if (!Array.isArray(st.compUsed)) st.compUsed = []; return st; }
+        if (raw) { const st = JSON.parse(raw); if (!Array.isArray(st.compUsed)) st.compUsed = []; if (!Array.isArray(st.expenses)) st.expenses = []; return st; }
       } catch (e) {}
       const def = getDefaultState();
       saveState(def);
@@ -1688,7 +1857,31 @@ html body .profile-tile {
       }, 3000);
     }
 
-    function analyzeShift(shift, baseSalary, cfg, comp = false) {
+    /* Horas de una jornada a partir de las cuales se consideran "excedentes" */
+    const DAILY_LIMIT_H = 8;
+
+    /* Destino de las horas excedentes de un turno:
+         'comp' = Bolsa de Compensatorios (cada 8 h acumuladas = 1 día libre, no suma al pago)
+         'pay'  = Horas Extras pagadas
+       Prioridad de la regla:
+         1) elección explícita guardada en el turno
+         2) ajuste mensual de versiones anteriores (monthlyMeta.comp), si existe
+         3) Compensatorio (predeterminado) */
+    function shiftOvertimeMode(shift) {
+      if (shift && (shift.overtimeMode === 'comp' || shift.overtimeMode === 'pay')) return shift.overtimeMode;
+      const meta = (shift && shift.userId && shift.date) ? appState.monthlyMeta[`${shift.userId}_${shift.date.slice(0, 7)}`] : null;
+      if (meta) {
+        if (typeof meta.comp === 'boolean') return meta.comp ? 'comp' : 'pay';
+        if (meta.paid) return 'pay';            // mes ya liquidado sin elección: se respeta como se pagó
+      }
+      return 'comp';
+    }
+
+    /* modeOverride (opcional): 'comp' | 'pay' (o true/false por compatibilidad). Si se omite, se toma del turno. */
+    function analyzeShift(shift, baseSalary, cfg, modeOverride) {
+      const mode = modeOverride === true ? 'comp' : modeOverride === false ? 'pay' : (modeOverride || shiftOvertimeMode(shift));
+      const toComp = mode === 'comp';
+
       const [sh, sm] = shift.start.split(':').map(Number);
       const [eh, em] = shift.end.split(':').map(Number);
       let startMin = sh * 60 + sm;
@@ -1701,7 +1894,7 @@ html body .profile-tile {
       for (let i = 0; i < durationMin; i++) {
         const cur = (startMin + i) % (24 * 60);
         const isNight = cur >= 20 * 60 || cur < 6 * 60;
-        const isExtra = i >= 8 * 60;
+        const isExtra = i >= DAILY_LIMIT_H * 60;
 
         if (!isExtra && !isNight) normalDayMin++;
         else if (!isExtra && isNight) normalNightMin++;
@@ -1714,18 +1907,24 @@ html body .profile-tile {
       const normalNightHours = normalNightMin / 60;
       const extraDayHours = extraDayMin / 60;
       const extraNightHours = extraNightMin / 60;
+      const excessHours = extraDayHours + extraNightHours;      // horas que superan la jornada de 8 h
 
       const hourlyRate = baseSalary / 240;
       const nightRecargoGs = normalNightHours * hourlyRate * (cfg.nightPct / 100);
       const holidayRecargoGs = shift.isHoliday ? (normalDayHours + normalNightHours) * hourlyRate * (cfg.holidayPct / 100) : 0;
-      const extraDayGs = comp ? 0 : extraDayHours * hourlyRate * (1 + cfg.otDayPct / 100);
-      const extraNightGs = comp ? 0 : extraNightHours * hourlyRate * (1 + cfg.otNightPct / 100);
+      // Si el destino es compensatorio, las excedentes NO generan pago en guaraníes
+      const extraDayGs = toComp ? 0 : extraDayHours * hourlyRate * (1 + cfg.otDayPct / 100);
+      const extraNightGs = toComp ? 0 : extraNightHours * hourlyRate * (1 + cfg.otNightPct / 100);
 
       return {
         totalHours,
         totalNightHours: normalNightHours + extraNightHours,
-        totalExtraHours: extraDayHours + extraNightHours,
-        compHours: comp ? extraDayHours + extraNightHours : 0,
+        totalExtraHours: excessHours,
+        excessHours,
+        hasExcess: excessHours > 1e-9,
+        overtimeMode: mode,
+        compHours: toComp ? excessHours : 0,          // suma a la bolsa de compensatorios
+        paidExtraHours: toComp ? 0 : excessHours,     // se paga como hora extra
         hourlyRate,
         nightRecargoGs,
         holidayRecargoGs,
@@ -1740,13 +1939,13 @@ html body .profile-tile {
       if (!user) return null;
 
       const userShifts = appState.shifts.filter(s => s.userId === userId && s.date.startsWith(monthStr));
-      let totalHours = 0, totalNightHours = 0, totalExtraHours = 0, compHours = 0;
-      const comp = isCompMonth(userId, monthStr);
+      let totalHours = 0, totalNightHours = 0, totalExtraHours = 0, compHours = 0, paidExtraHours = 0;
       let nightBonusGs = 0, holidayBonusGs = 0, overtimeBonusGs = 0;
 
       userShifts.forEach(shift => {
-        const res = analyzeShift(shift, user.baseSalary, appState.config, comp);
+        const res = analyzeShift(shift, user.baseSalary, appState.config);
         compHours += res.compHours;
+        paidExtraHours += res.paidExtraHours;
         totalHours += res.totalHours;
         totalNightHours += res.totalNightHours;
         totalExtraHours += res.totalExtraHours;
@@ -1759,65 +1958,130 @@ html body .profile-tile {
       const meta = appState.monthlyMeta[metaKey] || { advance: 0, paid: false, paidDate: null };
       const advanceGs = Number(meta.advance || 0);
 
+      // Gastos / anticipos registrados en el módulo Control de Gastos para este mes
+      const monthExpenses = (appState.expenses || [])
+        .filter(x => x.userId === userId && String(x.date).startsWith(monthStr))
+        .sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt || 0) - (b.createdAt || 0));
+      const expensesGs = monthExpenses.reduce((t, x) => t + Number(x.amount || 0), 0);
+
       const grossTotal = user.baseSalary + nightBonusGs + holidayBonusGs + overtimeBonusGs;
-      const netTotal = Math.max(0, grossTotal - advanceGs);
+      const totalDeductionsGs = advanceGs + expensesGs;
+      const netTotal = Math.max(0, grossTotal - totalDeductionsGs);
 
       return {
         user, monthStr, shifts: userShifts,
         hourlyRate: user.baseSalary / 240,
         baseSalary: user.baseSalary,
-        totalHours, totalNightHours, totalExtraHours, comp, compHours,
+        totalHours, totalNightHours, totalExtraHours, comp: compHours > 0, compHours, paidExtraHours, compDays: compHours / DAILY_LIMIT_H,
         nightBonusGs, holidayBonusGs, overtimeBonusGs,
         totalAllExtrasGs: holidayBonusGs + overtimeBonusGs,
-        advanceGs, grossTotal, netTotal,
+        advanceGs, expenses: monthExpenses, expensesGs, totalDeductionsGs,
+        uncoveredGs: Math.max(0, totalDeductionsGs - grossTotal),
+        grossTotal, netTotal,
         paid: Boolean(meta.paid), paidDate: meta.paidDate
       };
     }
 
-    document.getElementById('login-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      attemptLogin(document.getElementById('login-username').value.trim().toLowerCase(), document.getElementById('login-password').value.trim());
-    });
-
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    function pickProfile(username) {
-      document.getElementById('login-username').value = username;
-      document.querySelectorAll('#profile-picker [data-user]').forEach(b => b.classList.toggle('is-selected', b.dataset.user === username));
-      document.getElementById('login-password').focus();
+    /* ================= AUTENTICACIÓN (correo + contraseña, persistente) ================= */
+    const SESSION_KEY = 'control_salario_pyg_session';
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    function showAuthPanel(name) {
+      ['login', 'register', 'salary'].forEach(p =>
+        document.getElementById(p + '-form').classList.toggle('hidden', p !== name));
+    }
+    function saveSession(user) {
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: user.id, email: user.username, at: Date.now() })); } catch (e) {}
+    }
+    function readSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+    function clearSession() {
+      try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
     }
 
-    function renderProfilePicker() {
-      const el = document.getElementById('profile-picker');
-      if (!el) return;
-      el.innerHTML = appState.users.map(u => `
-        <button type="button" data-user="${esc(u.username)}" onclick="pickProfile(this.dataset.user)" class="profile-tile">
-          <span class="profile-avatar">${esc(u.name.trim()[0] || '?').toUpperCase()}</span>
-          <span class="text-sm font-semibold text-white leading-tight">${esc(u.name)}</span>
-        </button>`).join('');
-    }
-    renderProfilePicker();
+    /* Entra a la app. Si no tiene salario base configurado, lo obliga a ingresarlo. */
+    function enterApp(user, announce = true) {
+      currentUser = user;
+      inspectedUserId = user.id;
+      saveSession(user);
 
-    function attemptLogin(u, p) {
-      const found = appState.users.find(x => x.username.toLowerCase() === u && x.password === p);
-      if (!found) {
-        showToast('Credenciales incorrectas.', 'error');
+      if (!(user.baseSalary > 0)) {
+        document.getElementById('app-view').classList.add('hidden');
+        document.getElementById('login-view').classList.remove('hidden');
+        showAuthPanel('salary');
         return;
       }
-      currentUser = found;
-      inspectedUserId = found.id;
       document.getElementById('login-view').classList.add('hidden');
       document.getElementById('app-view').classList.remove('hidden');
       document.getElementById('period-month-picker').value = getCurrentMonthStr();
       document.getElementById('shift-date').value = new Date().toISOString().split('T')[0];
-
       setupRoleUI();
       switchTab('dashboard');
       previewShiftCalculation();
-      showToast(`Bienvenido, ${currentUser.name}`);
+      if (announce) showToast(`Bienvenido, ${user.name}`);
     }
 
+    function attemptLogin(email, pass) {
+      const found = appState.users.find(x => x.username.toLowerCase() === email && x.password === pass);
+      if (!found) { showToast('Correo o contraseña incorrectos.', 'error'); return; }
+      enterApp(found);
+    }
+
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      attemptLogin(document.getElementById('login-username').value.trim().toLowerCase(),
+                   document.getElementById('login-password').value.trim());
+    });
+
+    document.getElementById('register-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const pass = document.getElementById('reg-password').value.trim();
+      const pass2 = document.getElementById('reg-password2').value.trim();
+      const salary = Number(document.getElementById('reg-salary').value);
+
+      if (!name) { showToast('Ingresa tu nombre', 'error'); return; }
+      if (!EMAIL_RE.test(email)) { showToast('Ingresa un correo válido', 'error'); return; }
+      if (pass.length < 4) { showToast('La contraseña debe tener al menos 4 caracteres', 'error'); return; }
+      if (pass !== pass2) { showToast('Las contraseñas no coinciden', 'error'); return; }
+      if (!Number.isFinite(salary) || salary <= 0) { showToast('El salario base inicial es obligatorio', 'error'); return; }
+      if (appState.users.some(u => u.username.toLowerCase() === email)) { showToast('Ese correo ya está registrado', 'error'); return; }
+
+      const user = {
+        id: 'u-' + Date.now(),
+        name,
+        username: email,                       // el correo es el identificador de ingreso
+        password: pass,
+        role: appState.users.length === 0 ? 'admin' : 'employee',   // el primero es admin
+        position: 'Colaborador',
+        baseSalary: Math.round(salary),
+        expensesEnabled: false,                // el módulo Control de Gastos lo activa un administrador
+        shiftName: '', shiftHours: '', shiftDays: ''
+      };
+      appState.users.push(user);
+      saveState();
+      this.reset();
+      enterApp(user);
+    });
+
+    document.getElementById('salary-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const salary = Number(document.getElementById('setup-salary').value);
+      if (!currentUser || !Number.isFinite(salary) || salary <= 0) { showToast('El salario base es obligatorio', 'error'); return; }
+      const u = appState.users.find(x => x.id === currentUser.id);
+      if (!u) return;
+      u.baseSalary = Math.round(salary);
+      saveState();
+      this.reset();
+      enterApp(u);
+    });
+
     function logout() {
+      clearSession();
       currentUser = null;
       inspectedUserId = null;
       teamSelectedId = null;
@@ -1825,7 +2089,7 @@ html body .profile-tile {
       document.getElementById('login-view').classList.remove('hidden');
       document.getElementById('login-password').value = '';
       document.getElementById('login-username').value = '';
-      renderProfilePicker();
+      showAuthPanel('login');
     }
 
     function setupRoleUI() {
@@ -1838,6 +2102,7 @@ html body .profile-tile {
       document.getElementById('tab-admin-team').classList.toggle('hidden', !isAdmin);
       document.getElementById('tab-admin-settings').classList.toggle('hidden', !isAdmin);
       document.getElementById('tab-team-schedule').classList.toggle('hidden', currentUser.role !== 'boss');
+      syncExpensesTab();
       if (isAdmin) loadSettingsIntoForm();
     }
 
@@ -1851,7 +2116,7 @@ html body .profile-tile {
         }`;
       });
 
-      ['dashboard', 'shifts', 'payments', 'admin-team', 'admin-settings', 'team-schedule'].forEach(sec => {
+      ['dashboard', 'shifts', 'payments', 'expenses', 'admin-team', 'admin-settings', 'team-schedule'].forEach(sec => {
         const el = document.getElementById(`section-${sec}`);
         if (el) el.classList.toggle('hidden', sec !== tabName);
       });
@@ -1860,6 +2125,7 @@ html body .profile-tile {
 
     function renderAll() {
       if (!currentUser) return;
+      syncExpensesTab();
       const monthStr = document.getElementById('period-month-picker').value || getCurrentMonthStr();
       const targetUserId = currentUser.id;
       const payroll = calculateMonthlyPayroll(targetUserId, monthStr);
@@ -1870,6 +2136,7 @@ html body .profile-tile {
       renderShiftsTable(payroll);
       renderPaymentsHistory(targetUserId);
       renderComp(monthStr);
+      if (canUseExpenses(currentUser)) renderExpenses(monthStr, payroll);
 
       if (currentUser.role === 'admin') renderAdminTeamTable(monthStr);
       if (currentUser.role === 'boss') renderTeamSchedule(monthStr);
@@ -1897,7 +2164,9 @@ html body .profile-tile {
       document.getElementById('kpi-night-bonus').textContent = formatPYG(payroll.nightBonusGs);
       document.getElementById('kpi-night-hours').textContent = `${payroll.totalNightHours.toFixed(1)} hrs (+${appState.config.nightPct}%)`;
       document.getElementById('kpi-overtime-bonus').textContent = formatPYG(payroll.totalAllExtrasGs);
-      document.getElementById('kpi-overtime-hours').textContent = payroll.comp ? `${payroll.compHours.toFixed(1)} hrs → compensatorio` : `${payroll.totalExtraHours.toFixed(1)} hrs extras`;
+      document.getElementById('kpi-overtime-hours').textContent = payroll.compHours > 0
+        ? `${payroll.paidExtraHours.toFixed(1)} hrs pagadas · ${payroll.compHours.toFixed(1)} hrs → compensatorio`
+        : `${payroll.paidExtraHours.toFixed(1)} hrs extras`;
       document.getElementById('kpi-net-total').textContent = formatPYG(payroll.netTotal);
       document.getElementById('kpi-payment-status').innerHTML = payroll.paid ? `<span class="text-emerald-300 font-semibold"><i class="fa-solid fa-circle-check pop-in mr-1"></i>Pagado</span>` : `<span class="text-amber-300"><i class="fa-regular fa-clock fa-fade mr-1"></i>Pendiente</span>`;
 
@@ -1915,13 +2184,21 @@ html body .profile-tile {
           <span class="font-mono font-semibold text-blue-300">+ ${formatPYG(payroll.nightBonusGs)}</span>
         </div>
         <div class="flex items-center justify-between py-2 border-b border-slate-800/60">
-          <div><span class="text-amber-300 font-medium">Horas Extras y Feriados</span><span class="block text-xs text-slate-500">${payroll.comp ? payroll.compHours.toFixed(1) + 'h van a compensatorio (no se pagan)' : payroll.totalExtraHours.toFixed(1) + 'h excedentes'}</span></div>
+          <div><span class="text-amber-300 font-medium">Horas Extras y Feriados</span><span class="block text-xs text-slate-500">${payroll.paidExtraHours.toFixed(1)}h excedentes pagadas</span></div>
           <span class="font-mono font-semibold text-amber-300">+ ${formatPYG(payroll.totalAllExtrasGs)}</span>
         </div>
+        ${payroll.compHours > 0 ? `<div class="flex items-center justify-between py-2 border-b border-slate-800/60">
+          <div><span class="text-emerald-300 font-medium"><i class="fa-solid fa-umbrella-beach mr-1.5"></i>A Compensatorio</span><span class="block text-xs text-slate-500">${payroll.compHours.toFixed(1)}h excedentes · ≈ ${payroll.compDays.toFixed(1)} día(s) libre(s) · no suman al pago</span></div>
+          <span class="font-mono font-semibold text-emerald-300">${payroll.compHours.toFixed(1)} h</span>
+        </div>` : ''}
         <div class="flex items-center justify-between py-2 border-b border-slate-800/60">
           <div><span class="text-rose-300 font-medium">Anticipos / Descuentos</span><span class="block text-xs text-slate-500">Vales del mes</span></div>
           <span class="font-mono font-semibold text-rose-400">- ${formatPYG(payroll.advanceGs)}</span>
         </div>
+        ${(payroll.expensesGs > 0 || canUseExpenses(currentUser)) ? `<div class="flex items-center justify-between py-2 border-b border-slate-800/60">
+          <div><span class="text-rose-300 font-medium"><i class="fa-solid fa-wallet mr-1.5"></i>Gastos y anticipos registrados</span><span class="block text-xs text-slate-500">${payroll.expenses.length} movimiento(s) del Control de Gastos</span></div>
+          <span class="font-mono font-semibold text-rose-400">- ${formatPYG(payroll.expensesGs)}</span>
+        </div>` : ''}
         <div class="flex items-center justify-between pt-3">
           <span class="text-base font-bold text-white">TOTAL NETO A PERCIBIR</span>
           <span class="text-lg sm:text-xl font-extrabold font-mono text-emerald-400">${formatPYG(payroll.netTotal)}</span>
@@ -1935,6 +2212,11 @@ html body .profile-tile {
       previewShiftCalculation();
     }
 
+    function setShiftFormMode(mode) {
+      document.getElementById('shift-ot-mode').value = mode === 'pay' ? 'pay' : 'comp';
+      previewShiftCalculation();
+    }
+
     function previewShiftCalculation() {
       const start = document.getElementById('shift-start').value;
       const end = document.getElementById('shift-end').value;
@@ -1942,9 +2224,33 @@ html body .profile-tile {
       if (!start || !end) return;
 
       const user = appState.users.find(u => u.id === currentUser.id) || currentUser;
-      const dateVal = document.getElementById('shift-date').value;
-      const comp = dateVal ? isCompMonth(user.id, dateVal.slice(0, 7)) : false;
-      const analysis = analyzeShift({ start, end, isHoliday }, user.baseSalary, appState.config, comp);
+      const modeInput = document.getElementById('shift-ot-mode');
+      const probe = analyzeShift({ start, end, isHoliday }, user.baseSalary, appState.config, 'comp');
+
+      // Sin excedente no hay nada que elegir: se vuelve al predeterminado (Compensatorio)
+      if (!probe.hasExcess) modeInput.value = 'comp';
+      const mode = modeInput.value === 'pay' ? 'pay' : 'comp';
+      const analysis = analyzeShift({ start, end, isHoliday }, user.baseSalary, appState.config, mode);
+
+      document.getElementById('ot-destination').classList.toggle('hidden', !analysis.hasExcess);
+      document.getElementById('ot-hours').textContent = fmtH(analysis.excessHours);
+      [['comp', 'ot-btn-comp'], ['pay', 'ot-btn-pay']].forEach(([m, id]) => {
+        const b = document.getElementById(id);
+        b.classList.toggle('is-active', m === mode);
+        b.setAttribute('aria-checked', m === mode);
+      });
+
+      let extra = '';
+      if (analysis.hasExcess && mode === 'comp') {
+        const st = compStats(user.id);
+        const after = st.bank + analysis.compHours;
+        extra = `<div class="pt-1 border-t border-emerald-500/20 text-emerald-400">
+          <div class="flex justify-between"><span><i class="fa-solid fa-umbrella-beach mr-1"></i>A compensatorio:</span><strong class="font-mono">+${analysis.compHours.toFixed(1)}h</strong></div>
+          <div class="text-slate-400 mt-0.5">No suman al pago · Bolsa: ${st.bank.toFixed(1)}h → ${after.toFixed(1)}h (${Math.floor(after / DAILY_LIMIT_H + 1e-9)} día(s) libre(s))</div>
+        </div>`;
+      } else if (analysis.hasExcess) {
+        extra = `<div class="pt-1 border-t border-emerald-500/20 text-amber-300 flex justify-between"><span><i class="fa-solid fa-money-bill-wave mr-1"></i>Horas extras pagadas:</span><strong class="font-mono">+ ${formatPYG(analysis.extraDayGs + analysis.extraNightGs)}</strong></div>`;
+      }
 
       document.getElementById('shift-live-preview').innerHTML = `
         <div class="font-semibold text-emerald-300 flex items-center justify-between">
@@ -1952,12 +2258,12 @@ html body .profile-tile {
         </div>
         <div class="grid grid-cols-2 gap-1 text-slate-300 pt-1">
           <span>• Nocturnas: <strong>${analysis.totalNightHours.toFixed(1)}h</strong></span>
-          <span>• Extras: <strong>${analysis.totalExtraHours.toFixed(1)}h</strong></span>
+          <span>• Excedente: <strong>${analysis.excessHours.toFixed(1)}h</strong></span>
         </div>
         <div class="text-emerald-400 font-mono font-semibold pt-1 border-t border-emerald-500/20 flex justify-between">
-          <span>Recargos:</span><span>+ ${formatPYG(analysis.totalAdditionsGs)}</span>
+          <span>Recargos en Gs.:</span><span>+ ${formatPYG(analysis.totalAdditionsGs)}</span>
         </div>
-        ${comp && analysis.compHours > 0 ? `<div class="text-amber-300 pt-1">+ ${analysis.compHours.toFixed(1)}h al compensatorio</div>` : ''}
+        ${extra}
       `;
     }
 
@@ -1969,13 +2275,20 @@ html body .profile-tile {
       const end = document.getElementById('shift-end').value;
       const isHoliday = document.getElementById('shift-holiday').checked;
       const note = document.getElementById('shift-note').value.trim();
+      const overtimeMode = document.getElementById('shift-ot-mode').value === 'pay' ? 'pay' : 'comp';
 
-      appState.shifts.push({ id: 's-' + Date.now(), userId: targetUserId, date, start, end, isHoliday, note });
+      const shift = { id: 's-' + Date.now(), userId: targetUserId, date, start, end, isHoliday, note, overtimeMode };
+      appState.shifts.push(shift);
       saveState();
       document.getElementById('period-month-picker').value = date.slice(0, 7);
       document.getElementById('shift-note').value = '';
+      document.getElementById('shift-ot-mode').value = 'comp';      // siempre vuelve al predeterminado
+      const res = analyzeShift(shift, currentUser.baseSalary, appState.config);
       renderAll();
-      showToast('Turno guardado y calculado correctamente');
+      previewShiftCalculation();
+      showToast(res.compHours > 0 ? `Turno guardado · +${res.compHours.toFixed(1)} h al compensatorio`
+              : res.paidExtraHours > 0 ? `Turno guardado · ${res.paidExtraHours.toFixed(1)} h extras pagadas`
+              : 'Turno guardado y calculado correctamente');
     });
 
     function deleteShift(id) {
@@ -1985,32 +2298,77 @@ html body .profile-tile {
       showToast('Turno eliminado', 'info');
     }
 
-    function renderShiftsTable(payroll) {
-      const tbody = document.getElementById('shifts-table-body');
-      const sorted = [...payroll.shifts].sort((a, b) => b.date.localeCompare(a.date));
-      document.getElementById('shifts-count-badge').textContent = `${sorted.length} turno(s)`;
+    /* ===== Lista de turnos: tarjetas compactas con desglose expandible ===== */
+    const expandedShifts = new Set();               // recuerda qué tarjetas están abiertas entre renders
+    const fmtH = h => (Math.round(h * 10) / 10).toFixed(1) + ' h';
 
-      if (sorted.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">Sin turnos en este período.</td></tr>`;
+    function toggleShiftCard(id) {
+      const card = document.querySelector(`.shift-card[data-id="${CSS.escape(id)}"]`);
+      if (!card) return;
+      const open = card.classList.toggle('is-open');
+      card.querySelector('.shift-head').setAttribute('aria-expanded', open);
+      open ? expandedShifts.add(id) : expandedShifts.delete(id);
+    }
+
+    function renderShiftsTable(payroll) {
+      const list = document.getElementById('shifts-list');
+      const badge = document.getElementById('shifts-count-badge');
+      const today = new Date().toLocaleDateString('sv-SE');
+
+      const items = [...payroll.shifts]
+        .sort((a, b) => b.date.localeCompare(a.date) || b.start.localeCompare(a.start))
+        .map(s => ({ s, r: analyzeShift(s, payroll.baseSalary, appState.config) }));
+
+      if (!items.length) {
+        badge.textContent = '0 turnos';
+        list.innerHTML = '<div class="shift-empty"><i class="fa-regular fa-calendar" style="font-size:20px;display:block;margin-bottom:8px"></i>Sin turnos en este período.</div>';
         return;
       }
 
-      tbody.innerHTML = sorted.map(s => {
-        const comp = isCompMonth(payroll.user.id, s.date.slice(0, 7));
-        const res = analyzeShift(s, payroll.baseSalary, appState.config, comp);
-        const isToday = s.date === new Date().toLocaleDateString('sv-SE');
+      const totalH = items.reduce((t, i) => t + i.r.totalHours, 0);
+      badge.textContent = `${items.length} turno${items.length === 1 ? '' : 's'} · ${fmtH(totalH)}`;
+
+      list.innerHTML = items.map(({ s, r }) => {
+        const d = new Date(s.date + 'T00:00:00');
+        const weekday = d.toLocaleDateString('es', { weekday: 'short' }).replace('.', '');
+        const open = expandedShifts.has(s.id);
+        const isToday = s.date === today;
+        const extrasGs = r.extraDayGs + r.extraNightGs;
+        const toComp = r.overtimeMode === 'comp';
+
+        const tags = [
+          isToday ? '<span class="shift-tag tag-today">Hoy</span>' : '',
+          r.totalNightHours > 0 ? '<span class="shift-tag tag-night"><i class="fa-solid fa-moon"></i>Nocturno</span>' : '',
+          s.isHoliday ? '<span class="shift-tag tag-holiday"><i class="fa-solid fa-star"></i>Feriado</span>' : '',
+          r.hasExcess ? (toComp
+            ? `<span class="shift-tag tag-comp"><i class="fa-solid fa-umbrella-beach"></i>+${fmtH(r.excessHours)} comp.</span>`
+            : `<span class="shift-tag tag-extra"><i class="fa-solid fa-coins"></i>+${fmtH(r.excessHours)} extra</span>`) : ''
+        ].join('');
+
+        const rows = [
+          `<div class="row"><span>Horas nocturnas</span><span>${fmtH(r.totalNightHours)}</span></div>`,
+          `<div class="row"><span>Horas excedentes</span><span>${fmtH(r.excessHours)}${r.hasExcess ? (toComp ? ' · a compensatorio' : ' · pagadas') : ''}</span></div>`,
+          r.hasExcess && s.userId === currentUser.id ? `<div class="shift-dest"><span>Destino del excedente</span><div class="ot-seg ot-seg-sm"><button type="button" class="${toComp ? 'is-active' : ''}" onclick="setShiftOvertimeMode('${s.id}','comp')"><i class="fa-solid fa-umbrella-beach"></i>Compensatorio</button><button type="button" class="${toComp ? '' : 'is-active'}" onclick="setShiftOvertimeMode('${s.id}','pay')"><i class="fa-solid fa-money-bill-wave"></i>Pagadas</button></div></div>` : '',
+          r.nightRecargoGs > 0 ? `<div class="row"><span>Recargo nocturno</span><span>+ ${formatPYG(r.nightRecargoGs)}</span></div>` : '',
+          r.holidayRecargoGs > 0 ? `<div class="row"><span>Recargo feriado</span><span>+ ${formatPYG(r.holidayRecargoGs)}</span></div>` : '',
+          extrasGs > 0 ? `<div class="row"><span>Pago de extras</span><span>+ ${formatPYG(extrasGs)}</span></div>` : '',
+          `<div class="row sum"><span>Total recargos</span><span>+ ${formatPYG(r.totalAdditionsGs)}</span></div>`,
+          s.note ? `<div class="shift-note">“${esc(s.note)}”</div>` : '',
+          `<button type="button" class="shift-del" onclick="deleteShift('${s.id}')"><i class="fa-solid fa-trash-can"></i>Eliminar turno</button>`
+        ].join('');
+
         return `
-          <tr class="hover:bg-slate-800/40 transition ${isToday ? 'row-live' : ''}">
-            <td class="py-3 px-3"><div class="font-medium text-slate-200">${s.date}</div>${s.isHoliday ? '<span class="text-[10px] px-1 rounded bg-purple-500/20 text-purple-300">Feriado</span>' : ''}</td>
-            <td class="py-3 px-3 font-mono text-xs text-slate-300">${s.start} - ${s.end}</td>
-            <td class="py-3 px-3 text-right font-mono text-slate-200">${res.totalHours.toFixed(1)}h</td>
-            <td class="py-3 px-3 text-right font-mono text-blue-400">${res.totalNightHours > 0 ? '<i class="fa-solid fa-moon text-[10px] mr-1 opacity-70"></i>' : ''}${res.totalNightHours.toFixed(1)}h</td>
-            <td class="py-3 px-3 text-right font-mono text-amber-400">${res.totalExtraHours.toFixed(1)}h${comp && res.totalExtraHours > 0 ? ' <span class="text-[10px] text-emerald-400">comp.</span>' : ''}</td>
-            <td class="py-3 px-3 text-right font-mono font-semibold text-emerald-400">+ ${formatPYG(res.totalAdditionsGs)}</td>
-            <td class="py-3 px-3 text-center">${isToday ? '<span class="badge badge-live"><span class="dot"></span>Hoy</span>' : '<span class="badge badge-paid"><i class="fa-solid fa-check"></i>OK</span>'}</td>
-            <td class="py-3 px-3 text-right"><button onclick="deleteShift('${s.id}')" class="p-1.5 text-slate-400 hover:text-rose-400"><i class="fa-solid fa-trash-can"></i></button></td>
-          </tr>
-        `;
+          <article class="shift-card ${open ? 'is-open' : ''} ${isToday ? 'is-today' : ''}" data-id="${s.id}">
+            <button type="button" class="shift-head" aria-expanded="${open}" aria-controls="shift-body-${s.id}" onclick="toggleShiftCard('${s.id}')">
+              <span class="shift-date"><b>${s.date.slice(8, 10)}</b><small>${esc(weekday)}</small></span>
+              <span class="shift-main">
+                <span class="shift-time">${esc(s.start)} – ${esc(s.end)}</span>
+                ${tags ? `<span class="shift-tags">${tags}</span>` : ''}
+              </span>
+              <span class="shift-total"><b>${fmtH(r.totalHours)}</b><i class="fa-solid fa-chevron-down"></i></span>
+            </button>
+            <div class="shift-body" id="shift-body-${s.id}"><div class="shift-body-inner"><div class="shift-detail">${rows}</div></div></div>
+          </article>`;
       }).join('');
     }
 
@@ -2031,7 +2389,7 @@ html body .profile-tile {
             <td class="py-3.5 px-3 text-xs text-slate-400">${p.paidDate || `${m}-05`}</td>
             <td class="py-3.5 px-3 text-right font-mono text-slate-300">${formatPYG(p.baseSalary)}</td>
             <td class="py-3.5 px-3 text-right font-mono text-blue-300">+ ${formatPYG(totalExtras)}</td>
-            <td class="py-3.5 px-3 text-right font-mono text-rose-400">- ${formatPYG(p.advanceGs)}</td>
+            <td class="py-3.5 px-3 text-right font-mono text-rose-400">- ${formatPYG(p.advanceGs + p.expensesGs)}</td>
             <td class="py-3.5 px-3 text-right font-mono font-bold text-emerald-400">${formatPYG(p.netTotal)}</td>
             <td class="py-3.5 px-3 text-center">${p.paid ? '<span class="badge badge-paid"><i class="fa-solid fa-check"></i>Pagado</span>' : '<span class="badge badge-pending"><span class="dot"></span>Pendiente</span>'}</td>
             <td class="py-3.5 px-3 text-right"><button onclick="openReceiptModal('${userId}', '${m}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-200 text-xs"><i class="fa-solid fa-file-invoice mr-1"></i>Recibo</button></td>
@@ -2065,8 +2423,9 @@ html body .profile-tile {
           <div class="flex justify-between"><span class="text-slate-300">Salario Base (240h)</span><span class="font-mono font-semibold text-white">${formatPYG(p.baseSalary)}</span></div>
           <div class="flex justify-between"><span class="text-slate-300">Plus Nocturnidad</span><span class="font-mono text-blue-300">+ ${formatPYG(p.nightBonusGs)}</span></div>
           <div class="flex justify-between"><span class="text-slate-300">Horas Extras / Feriados</span><span class="font-mono text-amber-300">+ ${formatPYG(p.totalAllExtrasGs)}</span></div>
-          ${p.comp ? `<div class="flex justify-between"><span class="text-slate-300">Horas extras a compensatorio</span><span class="font-mono text-emerald-300">${p.compHours.toFixed(1)} h</span></div>` : ''}
+          ${p.comp ? `<div class="flex justify-between"><span class="text-slate-300">Excedentes a compensatorio (no pagadas)</span><span class="font-mono text-emerald-300">${p.compHours.toFixed(1)} h · ≈ ${p.compDays.toFixed(1)} día(s)</span></div>` : ''}
           <div class="flex justify-between"><span class="text-slate-300">Anticipos</span><span class="font-mono text-rose-400">- ${formatPYG(p.advanceGs)}</span></div>
+          ${p.expensesGs > 0 ? `<div class="flex justify-between"><span class="text-slate-300">Gastos y anticipos registrados (${p.expenses.length})</span><span class="font-mono text-rose-400">- ${formatPYG(p.expensesGs)}</span></div>` : ''}
         </div>
         <div class="flex items-center justify-between bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-4 mb-6">
           <span class="font-bold text-base text-white">TOTAL NETO</span>
@@ -2096,6 +2455,9 @@ html body .profile-tile {
             <td class="py-3.5 px-3 text-xs text-slate-300">${esc(u.shiftName)}<span class="block font-mono text-slate-500">${esc(u.shiftHours)}</span></td>
             <td class="py-3.5 px-3 text-right font-mono text-emerald-300">${cs.days} día(s)</td>
             <td class="py-3.5 px-3 text-center"><button onclick="togglePaid('${u.id}', '${monthStr}')" title="Cambiar estado" class="badge ${paid ? 'badge-paid' : 'badge-pending'}">${paid ? '<i class="fa-solid fa-check"></i>Pagado' : '<span class="dot"></span>Pendiente'}</button></td>
+            <td class="py-3.5 px-3 text-center">${u.role === 'admin'
+              ? '<span class="badge badge-paid" title="Los administradores siempre tienen acceso"><i class="fa-solid fa-shield-halved"></i>Siempre</span>'
+              : `<button type="button" role="switch" aria-checked="${u.expensesEnabled === true}" onclick="toggleExpensesAccess('${u.id}')" title="${u.expensesEnabled ? 'Quitar acceso' : 'Autorizar acceso'}" class="exp-switch ${u.expensesEnabled ? 'is-on' : ''}"><span></span></button>`}</td>
             <td class="py-3.5 px-3 text-right space-x-1">
               <button onclick="openEmployeeModal('${u.id}')" title="Editar" class="p-1.5 rounded bg-slate-800 text-slate-300 hover:text-white"><i class="fa-solid fa-pen"></i></button>
               <button onclick="openPasswordModal('${u.id}')" title="Cambiar contraseña" class="p-1.5 rounded bg-slate-800 text-slate-300 hover:text-white"><i class="fa-solid fa-key"></i></button>
@@ -2156,7 +2518,7 @@ html body .profile-tile {
         const live = window.isLiveShift && window.isLiveShift(u);
         const cs = compStats(u.id);
         let hrs = 0;
-        appState.shifts.filter(s => s.userId === u.id && s.date.startsWith(monthStr)).forEach(s => { hrs += analyzeShift(s, u.baseSalary, appState.config, false).totalHours; });
+        appState.shifts.filter(s => s.userId === u.id && s.date.startsWith(monthStr)).forEach(s => { hrs += analyzeShift(s, u.baseSalary, appState.config).totalHours; });
         return `
           <button type="button" onclick="openTeamMember('${u.id}')" class="w-full text-left bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 hover:border-emerald-500/40 rounded-2xl p-5 shadow-xl transition">
             <div class="flex items-center gap-3">
@@ -2193,7 +2555,7 @@ html body .profile-tile {
         list = appState.shifts.filter(s => s.userId === u.id && s.date.startsWith(monthStr));
       }
       list = [...list].sort((p, q) => p.date.localeCompare(q.date) || p.start.localeCompare(q.start));
-      const rows = list.map(s => ({ s, r: analyzeShift(s, u.baseSalary, cfg, false) }));
+      const rows = list.map(s => ({ s, r: analyzeShift(s, u.baseSalary, cfg) }));
       const sum = (arr, k) => arr.reduce((t, x) => t + x.r[k], 0);
       const cs = compStats(u.id);
       const box = (v, l, c) => `<div class="rounded-xl bg-slate-950/80 border border-slate-800 p-3"><div class="font-mono font-semibold ${c}">${v}</div><div class="text-[11px] text-slate-400">${l}</div></div>`;
@@ -2234,53 +2596,207 @@ html body .profile-tile {
       document.getElementById('team-detail-body').innerHTML = html;
     }
 
-    /* ===== Compensatorios (8 h extra acumuladas = 1 día libre pagado) ===== */
-    function isCompMonth(uid, monthStr) {
-      const meta = appState.monthlyMeta[`${uid}_${monthStr}`];
-      return !!(meta && meta.comp);
+    /* ===================== CONTROL DE GASTOS ===================== */
+    /* Acceso: administradores (siempre) y usuarios que un admin haya autorizado (expensesEnabled). */
+    function canUseExpenses(u) {
+      if (!u) return false;
+      const f = appState.users.find(x => x.id === u.id) || u;     // siempre con el dato más reciente
+      return f.role === 'admin' || f.expensesEnabled === true;
     }
 
+    /* Muestra/oculta la pestaña según el permiso y expulsa de la sección si ya no hay acceso */
+    function syncExpensesTab() {
+      const tab = document.getElementById('tab-expenses');
+      if (!tab || !currentUser) return;
+      const ok = canUseExpenses(currentUser);
+      tab.classList.toggle('hidden', !ok);
+      const sec = document.getElementById('section-expenses');
+      if (!ok && sec && !sec.classList.contains('hidden')) switchTab('dashboard');
+    }
+
+    /* Solo el administrador autoriza o quita el acceso */
+    function toggleExpensesAccess(userId) {
+      if (!currentUser || currentUser.role !== 'admin') { showToast('Solo un administrador puede autorizar', 'error'); return; }
+      const u = appState.users.find(x => x.id === userId);
+      if (!u || u.role === 'admin') return;
+      u.expensesEnabled = !u.expensesEnabled;
+      saveState();
+      renderAll();
+      showToast(u.expensesEnabled ? `Control de Gastos activado para ${u.name}` : `Control de Gastos desactivado para ${u.name}`);
+    }
+
+    function setExpenseType(type) {
+      document.getElementById('exp-type').value = type === 'anticipo' ? 'anticipo' : 'gasto';
+      ['gasto', 'anticipo'].forEach(t => {
+        const b = document.getElementById('exp-btn-' + t);
+        b.classList.toggle('is-active', t === document.getElementById('exp-type').value);
+        b.setAttribute('aria-checked', t === document.getElementById('exp-type').value);
+      });
+    }
+
+    function expenseMonth() { return document.getElementById('period-month-picker').value || getCurrentMonthStr(); }
+
+    function previewExpenseImpact() {
+      const box = document.getElementById('exp-preview');
+      if (!box || !currentUser) return;
+      const monthStr = expenseMonth();
+      const p = calculateMonthlyPayroll(currentUser.id, monthStr);
+      if (!p) return;
+      const amt = Math.round(Number(document.getElementById('exp-amount').value) || 0);
+      const after = Math.max(0, p.netTotal - amt);
+      const over = amt > p.netTotal;
+      box.innerHTML = `
+        <div class="flex justify-between text-slate-300"><span>Neto actual</span><span class="font-mono">${formatPYG(p.netTotal)}</span></div>
+        <div class="flex justify-between text-rose-400"><span>Este movimiento</span><span class="font-mono">- ${formatPYG(amt)}</span></div>
+        <div class="flex justify-between pt-1 border-t border-emerald-500/20 font-semibold text-emerald-400"><span>Neto después</span><span class="font-mono">${formatPYG(after)}</span></div>
+        ${over ? '<div class="text-amber-300 pt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Supera tu neto disponible: el neto quedará en Gs. 0.</div>' : ''}`;
+    }
+
+    function addExpense(e) {
+      e.preventDefault();
+      const u = currentUser && appState.users.find(x => x.id === currentUser.id);
+      if (!canUseExpenses(u)) { showToast('No tienes autorización para el Control de Gastos', 'error'); return; }
+
+      const monthStr = expenseMonth();
+      const type = document.getElementById('exp-type').value === 'anticipo' ? 'anticipo' : 'gasto';
+      const concept = document.getElementById('exp-concept').value.trim();
+      const amount = Math.round(Number(document.getElementById('exp-amount').value));
+      const date = document.getElementById('exp-date').value;
+
+      if (!concept) { showToast('Escribe el concepto', 'error'); return; }
+      if (!Number.isFinite(amount) || amount <= 0) { showToast('Ingresa un monto válido', 'error'); return; }
+      if (amount > 1e10) { showToast('El monto es demasiado grande', 'error'); return; }
+      if (!date || !date.startsWith(monthStr)) { showToast('La fecha debe estar dentro del período seleccionado', 'error'); return; }
+      const meta = appState.monthlyMeta[`${u.id}_${monthStr}`];
+      if (meta && meta.paid) { showToast('Ese mes ya está pagado, no se pueden agregar movimientos', 'error'); return; }
+
+      const before = calculateMonthlyPayroll(u.id, monthStr);
+      appState.expenses.push({ id: 'x-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), userId: u.id, date, amount, type, concept, createdAt: Date.now() });
+      saveState();
+      document.getElementById('exp-concept').value = '';
+      document.getElementById('exp-amount').value = '';
+      setExpenseType('gasto');
+      renderAll();
+      const after = calculateMonthlyPayroll(u.id, monthStr);
+      showToast(amount > before.netTotal
+        ? `Registrado: - ${formatPYG(amount)} · el neto queda en ${formatPYG(after.netTotal)}`
+        : `Registrado: - ${formatPYG(amount)} · Neto: ${formatPYG(after.netTotal)}`);
+    }
+
+    function deleteExpense(id) {
+      const x = appState.expenses.find(e => e.id === id);
+      if (!x || !currentUser || x.userId !== currentUser.id || !canUseExpenses(currentUser)) return;
+      const meta = appState.monthlyMeta[`${x.userId}_${x.date.slice(0, 7)}`];
+      if (meta && meta.paid) { showToast('Ese mes ya está pagado, no se puede modificar', 'error'); return; }
+      appState.expenses = appState.expenses.filter(e => e.id !== id);
+      saveState();
+      renderAll();
+      showToast('Movimiento eliminado: se devolvió al neto', 'info');
+    }
+
+    function renderExpenses(monthStr, payroll) {
+      const list = document.getElementById('exp-list');
+      if (!list) return;
+      const [yy, mm] = monthStr.split('-').map(Number);
+      document.getElementById('exp-month-label').textContent = `${MON_ES[mm - 1]} ${yy}`;
+
+      // La fecha del formulario se limita al período que se está viendo
+      const dateEl = document.getElementById('exp-date');
+      dateEl.min = `${monthStr}-01`;
+      dateEl.max = `${monthStr}-${String(new Date(yy, mm, 0).getDate()).padStart(2, '0')}`;
+      if (!dateEl.value || !dateEl.value.startsWith(monthStr)) dateEl.value = getCurrentMonthStr() === monthStr ? isoLocal(new Date()) : `${monthStr}-01`;
+
+      const before = Math.max(0, payroll.grossTotal - payroll.advanceGs);
+      document.getElementById('exp-kpi-before').textContent = formatPYG(before);
+      document.getElementById('exp-kpi-spent').textContent = '- ' + formatPYG(payroll.expensesGs);
+      document.getElementById('exp-kpi-count').textContent = `${payroll.expenses.length} movimiento${payroll.expenses.length === 1 ? '' : 's'}`;
+      document.getElementById('exp-kpi-net').textContent = formatPYG(payroll.netTotal);
+      document.getElementById('exp-kpi-status').innerHTML = payroll.paid
+        ? '<span class="font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Mes pagado</span>' : 'Pendiente de liquidación';
+      document.getElementById('exp-count-badge').textContent = `${payroll.expenses.length} movimiento${payroll.expenses.length === 1 ? '' : 's'}`;
+
+      // Impacto en la liquidación
+      const pct = payroll.grossTotal > 0 ? Math.min(100, (payroll.totalDeductionsGs / payroll.grossTotal) * 100) : 0;
+      document.getElementById('exp-impact').innerHTML = `
+        <div class="exp-impact">
+          <div class="exp-bar"><span style="width:${pct.toFixed(0)}%"></span></div>
+          <div class="text-[11px] text-slate-400 mt-1.5">${pct.toFixed(0)}% de tu salario del mes ya está descontado</div>
+          <div class="exp-sum mt-3">
+            <div class="row"><span>Salario bruto del mes (base + recargos)</span><span>${formatPYG(payroll.grossTotal)}</span></div>
+            ${payroll.advanceGs > 0 ? `<div class="row neg"><span>Anticipo / vales de la ficha</span><span>- ${formatPYG(payroll.advanceGs)}</span></div>` : ''}
+            <div class="row neg"><span>Gastos y anticipos registrados (${payroll.expenses.length})</span><span>- ${formatPYG(payroll.expensesGs)}</span></div>
+            <div class="row total"><span>Neto final a cobrar</span><span>${formatPYG(payroll.netTotal)}</span></div>
+          </div>
+          ${payroll.uncoveredGs > 0 ? `<div class="text-xs text-amber-300 mt-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Los descuentos superan tu salario en ${formatPYG(payroll.uncoveredGs)}; el neto queda en Gs. 0.</div>` : ''}
+        </div>`;
+
+      // Historial: saldo acumulado en orden cronológico, mostrado del más reciente al más antiguo
+      if (!payroll.expenses.length) {
+        list.innerHTML = '<div class="shift-empty"><i class="fa-solid fa-wallet" style="font-size:20px;display:block;margin-bottom:8px"></i>Sin movimientos en este período.</div>';
+      } else {
+        let run = payroll.grossTotal - payroll.advanceGs;
+        const rows = payroll.expenses.map(x => { run -= Number(x.amount); return { x, bal: run }; }).reverse();
+        list.innerHTML = rows.map(({ x, bal }) => {
+          const isAdv = x.type === 'anticipo';
+          return `
+            <article class="exp-item">
+              <div class="exp-ico ${isAdv ? 'adv' : ''}"><i class="fa-solid ${isAdv ? 'fa-hand-holding-dollar' : 'fa-receipt'}"></i></div>
+              <div class="exp-main">
+                <div class="exp-concept">${esc(x.concept)}</div>
+                <div class="exp-meta">${x.date.slice(8, 10)}/${x.date.slice(5, 7)} · ${isAdv ? 'Anticipo' : 'Gasto'}</div>
+                <div class="exp-after">Neto tras este movimiento: <b>${formatPYG(Math.max(0, bal))}</b>${bal < 0 ? ' <span class="text-amber-300">(excede)</span>' : ''}</div>
+              </div>
+              <div class="exp-amt">
+                <b>- ${formatPYG(x.amount)}</b>
+                ${payroll.paid ? '' : `<button type="button" onclick="deleteExpense('${x.id}')" title="Eliminar y devolver al neto" aria-label="Eliminar"><i class="fa-solid fa-trash-can"></i></button>`}
+              </div>
+            </article>`;
+        }).join('');
+      }
+      previewExpenseImpact();
+    }
+
+    /* ===== Compensatorios (8 h extra acumuladas = 1 día libre pagado) ===== */
     function compStats(uid) {
       const user = appState.users.find(u => u.id === uid);
       let earned = 0;
       if (user) appState.shifts.forEach(s => {
-        if (s.userId === uid && isCompMonth(uid, s.date.slice(0, 7))) earned += analyzeShift(s, user.baseSalary, appState.config, true).compHours;
+        if (s.userId === uid) earned += analyzeShift(s, user.baseSalary, appState.config).compHours;   // cada turno aporta según su destino
       });
       const used = (appState.compUsed || []).filter(c => c.userId === uid).sort((a, b) => b.date.localeCompare(a.date));
-      const bank = Math.max(0, earned - used.length * 8);
-      const days = Math.floor(bank / 8 + 1e-9);
-      return { earned, used, bank, days, rem: Math.max(0, bank - days * 8) };
+      const bank = Math.max(0, earned - used.length * DAILY_LIMIT_H);
+      const days = Math.floor(bank / DAILY_LIMIT_H + 1e-9);       // 8 h acumuladas = 1 día libre
+      return { earned, used, bank, days, rem: Math.max(0, bank - days * DAILY_LIMIT_H) };
     }
 
-    function setCompMode(on) {
-      const monthStr = document.getElementById('period-month-picker').value || getCurrentMonthStr();
-      const key = `${currentUser.id}_${monthStr}`;
-      const meta = appState.monthlyMeta[key] || { advance: 0, paid: false, paidDate: null };
-      if (!!meta.comp === on) return;
-      if (meta.paid) { showToast('Ese mes ya está pagado, no se puede cambiar', 'error'); return; }
-      meta.comp = on;
-      appState.monthlyMeta[key] = meta;
-      const st = compStats(currentUser.id);
-      if (!on && st.used.length * 8 > st.earned + 1e-6) {
-        meta.comp = true;
+    /* Cambia el destino del excedente de un turno ya guardado */
+    function setShiftOvertimeMode(id, mode) {
+      const sh = appState.shifts.find(x => x.id === id);
+      if (!sh || !currentUser || sh.userId !== currentUser.id) return;
+      mode = mode === 'pay' ? 'pay' : 'comp';
+      if (shiftOvertimeMode(sh) === mode) return;
+      const meta = appState.monthlyMeta[`${sh.userId}_${sh.date.slice(0, 7)}`];
+      if (meta && meta.paid) { showToast('Ese mes ya está pagado, no se puede cambiar', 'error'); return; }
+      const prev = sh.overtimeMode;
+      sh.overtimeMode = mode;
+      const st = compStats(sh.userId);
+      if (st.used.length * DAILY_LIMIT_H > st.earned + 1e-6) {      // ya se gastaron días libres con esas horas
+        sh.overtimeMode = prev;
         showToast('Ya usaste días libres con estas horas, no se puede volver a cobrarlas', 'error');
         return;
       }
       saveState();
       renderAll();
-      showToast(on ? 'Las horas extras de este mes irán a compensatorio' : 'Las horas extras de este mes se pagarán');
+      showToast(mode === 'comp' ? 'Excedente enviado al compensatorio' : 'Excedente marcado como horas extras pagadas');
     }
 
     function renderComp(monthStr) {
       const card = document.getElementById('comp-card');
       if (!card || !currentUser) return;
-      const uid = currentUser.id, on = isCompMonth(uid, monthStr), st = compStats(uid);
+      const uid = currentUser.id, st = compStats(uid);
       const p = calculateMonthlyPayroll(uid, monthStr);
       const [yy, mm] = monthStr.split('-').map(Number);
       document.getElementById('comp-month-label').textContent = `${MON_ES[mm - 1]} ${yy}`;
-      const act = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950', idle = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800';
-      document.getElementById('comp-mode-pay').className = on ? idle : act;
-      document.getElementById('comp-mode-comp').className = on ? act : idle;
       const need = st.days >= 1 && st.rem === 0 ? 8 : 8 - st.rem;
       const used = st.used.map(c => `
         <li class="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-950/70 border border-slate-800 text-xs">
@@ -2301,8 +2817,8 @@ html body .profile-tile {
           </div>
           <div class="rounded-xl bg-slate-950/80 border border-slate-800 p-4">
             <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Este mes</div>
-            <div class="text-lg font-bold font-mono ${on ? 'text-emerald-300' : 'text-amber-300'} mt-1">${on ? '+' + p.compHours.toFixed(1) + ' h' : 'Se pagan'}</div>
-            <div class="text-xs text-slate-400 mt-1">${on ? 'suman al compensatorio' : 'Activa "Compensatorio" para acumularlas'}</div>
+            <div class="text-lg font-bold font-mono text-emerald-300 mt-1">+${p.compHours.toFixed(1)} h</div>
+            <div class="text-xs text-slate-400 mt-1">a compensatorio${p.paidExtraHours > 0 ? ' · ' + p.paidExtraHours.toFixed(1) + ' h pagadas' : ''}</div>
           </div>
         </div>
         <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2422,10 +2938,10 @@ html body .profile-tile {
       appState.shifts = appState.shifts.filter(s => s.userId !== id);
       Object.keys(appState.monthlyMeta).forEach(k => { if (k.startsWith(id + '_')) delete appState.monthlyMeta[k]; });
       appState.compUsed = (appState.compUsed || []).filter(c => c.userId !== id);
+      appState.expenses = (appState.expenses || []).filter(x => x.userId !== id);
       if (inspectedUserId === id) inspectedUserId = currentUser.id;
       saveState();
       populateUserSelectors();
-      renderProfilePicker();
       closeReceiptModal();
       closeEmployeeModal();
       renderAll();
@@ -2492,6 +3008,7 @@ html body .profile-tile {
         document.getElementById('emp-password').value = '';
         document.getElementById('emp-password').placeholder = 'Vacío = no cambiar';
         document.getElementById('emp-role').value = u.role;
+        document.getElementById('emp-expenses').checked = u.role === 'admin' || u.expensesEnabled === true;
         document.getElementById('emp-salary').value = userId === currentUser.id ? u.baseSalary : '';
         document.getElementById('emp-shift-name').value = u.shiftName;
         document.getElementById('emp-shift-hours').value = u.shiftHours;
@@ -2528,10 +3045,11 @@ html body .profile-tile {
         username: document.getElementById('emp-username').value.trim().toLowerCase(),
         password: document.getElementById('emp-password').value.trim() || (id ? (appState.users.find(x => x.id === id) || {}).password : ''),
         role: document.getElementById('emp-role').value,
-        baseSalary: isSelfEdit ? (Number(document.getElementById('emp-salary').value) || prevU.baseSalary) : (prevU ? prevU.baseSalary : appState.config.defaultSalary),
+        baseSalary: isSelfEdit ? (Number(document.getElementById('emp-salary').value) || prevU.baseSalary) : (prevU ? prevU.baseSalary : 0),
         shiftName: document.getElementById('emp-shift-name').value.trim(),
         shiftHours: document.getElementById('emp-shift-hours').value.trim(),
-        shiftDays: document.getElementById('emp-shift-days').value.trim()
+        shiftDays: document.getElementById('emp-shift-days').value.trim(),
+        expensesEnabled: document.getElementById('emp-expenses').checked
       };
       if (!user.password) { showToast('Define una contraseña', 'error'); return; }
       if (appState.users.some(x => x.username === user.username && x.id !== user.id)) { showToast('Ese usuario ya existe', 'error'); return; }
@@ -2581,14 +3099,18 @@ html body .profile-tile {
     function resetDemoData() {
       appState = getDefaultState();
       saveState(appState);
-      if (currentUser) {
-        currentUser = appState.users.find(u => u.id === currentUser.id) || appState.users[0];
-        inspectedUserId = currentUser.id;
-        setupRoleUI();
-        renderAll();
-      }
+      logout();
       showToast('Datos reiniciados', 'info');
     }
+
+    /* Arranque: pide almacenamiento persistente y restaura la sesión guardada */
+    (function boot() {
+      try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+      const sess = readSession();
+      const u = sess && appState.users.find(x => x.id === sess.userId);
+      if (u) enterApp(u, false);
+      else { clearSession(); showAuthPanel(appState.users.length ? 'login' : 'register'); }
+    })();
 
   </script>
   <script>
@@ -2792,7 +3314,7 @@ html body .profile-tile {
   };
   const frame = now => {
     if (done) return;
-    const t = Math.min(1, (now - t0) / MIN);
+    const t = Math.max(0, Math.min(1, (now - t0) / MIN));
     let p = (1 - Math.pow(1 - t, 2.2)) * 100;
     if (!loaded) p = Math.min(p, 92);
     if (p >= 99.5) return finish();

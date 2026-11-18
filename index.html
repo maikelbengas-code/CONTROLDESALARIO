@@ -983,7 +983,72 @@ button.exp-switch{min-width:46px;min-height:26px}
 .exp-sum .row.neg span:last-child{color:#e11d48}
 .exp-sum .row.total{margin-top:2px;padding-top:8px;border-top:.5px dashed var(--sep);font-weight:700;font-size:14px}
 .exp-sum .row.total span:last-child{color:#15803d}
-@media (max-width:767px){#admin-team-table-body td:nth-child(4)::before{content:"Estado de pago"}#admin-team-table-body td:nth-child(5)::before{content:"Control de gastos"}}
+.exp-ico.in{background:rgba(22,163,74,.12);color:#15803d}
+.exp-amt b.pos{color:#15803d}
+.exp-bar.ok>span{background:linear-gradient(90deg,#34d399,#16a34a)}
+@media (max-width:767px){#admin-team-table-body td:nth-child(4)::before{content:"Estado de pago"}#admin-team-table-body td:nth-child(5)::before{content:"Mis Gastos"}}
+</style>
+<style>
+/* =========================================================================
+   CAPA MÓVIL NATIVA v2 — iPhone (Safari / PWA) y Android (Chrome)
+   ========================================================================= */
+:root{--ease-out:cubic-bezier(.16,1,.3,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+
+/* 1) Inputs a 16px: iOS no hace zoom al enfocar (cubre inputs, selects y textareas; también tablets) */
+@media (max-width:1023px),(pointer:coarse){
+  html body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]):not([type=button]):not([type=submit]),
+  html body select,
+  html body textarea{font-size:16px!important;line-height:1.3}
+  html body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]):not([type=button]):not([type=submit]),
+  html body select{min-height:44px}
+  html body input[type=checkbox],html body input[type=radio]{min-height:0;width:20px;height:20px}
+  button[class]:not(.badge):not(.tab-btn){min-height:44px;min-width:44px}
+  .exp-amt button{min-width:44px;min-height:44px}
+}
+
+/* 2) Sin desbordes laterales (animaciones de deslizamiento) y sin selección accidental en controles */
+body{overflow-x:hidden}
+button,.tab-btn,header{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+input,select,textarea{-webkit-user-select:text;user-select:text}
+
+/* 3) Táctil: sin "hover pegado" en iOS/Android, pero conservando el efecto de pulsación */
+@media (hover:none){
+  button[class]:hover{transform:none}
+  button.from-emerald-500:hover,button.bg-emerald-500:hover,button.bg-blue-600:hover{box-shadow:none}
+  button.from-emerald-500:hover::after,button.bg-emerald-500:hover::after,button.bg-blue-600:hover::after{transform:translateX(-120%)}
+  button[class]:active{transform:scale(.95)}
+  .shift-card .shift-head:active,.exp-item:active{background:rgba(22,163,74,.09)}
+}
+.exp-item{transition:background .15s,transform .2s}
+
+/* 4) Transición entre pestañas: desliza según la dirección (derecha/izquierda) */
+@keyframes tabInR{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+@keyframes tabInL{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
+.tab-content.slide-r{animation:tabInR .4s var(--ease-out) backwards}
+.tab-content.slide-l{animation:tabInL .4s var(--ease-out) backwards}
+
+/* 5) Micro-interacciones al registrar / borrar turnos y gastos */
+@keyframes itemNew{0%{opacity:0;transform:translateY(-12px) scale(.96)}45%{opacity:1;transform:translateY(0) scale(1.015)}100%{transform:none}}
+@keyframes itemGlow{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}100%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
+@keyframes itemOut{to{opacity:0;transform:translateX(-34px) scale(.96)}}
+.item-new{animation:itemNew .55s var(--ease-spring) backwards,itemGlow .9s ease-out .15s backwards}
+.item-out{animation:itemOut .24s ease-in forwards;pointer-events:none}
+.btn-ok{background:#16a34a!important;background-image:none!important;color:#fff!important;box-shadow:0 0 0 4px rgba(34,197,94,.25)!important}
+.btn-ok i{animation:popIn .45s var(--ease-spring) backwards}
+
+/* 6) Móvil: dock flotante y bottom-sheets */
+@media (max-width:767px){
+  /* áreas seguras también en horizontal (iPhone en landscape con notch) */
+  html body header>div.border-t{left:max(12px,env(safe-area-inset-left))!important;right:max(12px,env(safe-area-inset-right))!important;
+    transition:transform .32s var(--ease-out),opacity .2s ease}
+  html body #toast-container{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  /* con el teclado abierto el dock se esconde (no tapa campos ni flota sobre el teclado) */
+  html.kb-open body header>div.border-t{transform:translateY(calc(100% + 40px));opacity:0;pointer-events:none}
+  html.kb-open body main.flex-1{padding-bottom:24px}
+  /* los modales siguen al viewport VISUAL: la hoja queda siempre encima del teclado */
+  html body #employee-modal,html body #receipt-modal{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100dvh);touch-action:none}
+  html body #employee-modal>div,html body #receipt-modal>div{max-height:calc(var(--vvh,100dvh)*.94);touch-action:pan-y;overscroll-behavior:contain;will-change:transform}
+}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200 min-h-screen flex flex-col">
@@ -1026,10 +1091,10 @@ button.exp-switch{min-width:46px;min-height:26px}
       <!-- PANEL 1: INGRESAR -->
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Correo electrónico</label>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Correo o usuario</label>
           <div class="relative group">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 group-focus-within:text-emerald-400 transition"><i class="fa-solid fa-envelope"></i></span>
-            <input type="text" inputmode="email" id="login-username" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" required placeholder="tu@correo.com"
+            <input type="text" inputmode="email" id="login-username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" required placeholder="tu@correo.com o usuario"
               class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition" />
           </div>
         </div>
@@ -1088,7 +1153,10 @@ button.exp-switch{min-width:46px;min-height:26px}
 
       <!-- PANEL 3: SALARIO INICIAL (cuentas creadas por un admin) -->
       <form id="salary-form" class="hidden space-y-4" novalidate>
-        <p class="text-sm text-slate-300 text-center">Antes de continuar, ingresa tu <strong>salario base mensual</strong>. Es privado y solo se guarda en este dispositivo.</p>
+        <div class="text-center">
+          <h2 class="text-lg font-bold text-white">¡Hola, <span id="setup-salary-name"></span>!</h2>
+          <p class="text-sm text-slate-300 mt-1">Antes de continuar, ingresa tu <strong>salario base mensual</strong>. Es obligatorio, privado y solo se guarda en este dispositivo.</p>
+        </div>
         <input type="number" id="setup-salary" inputmode="numeric" min="1" step="1" required placeholder="Salario base (Gs.)"
           class="w-full px-4 py-3 bg-slate-950/90 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition" />
         <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2">
@@ -1153,7 +1221,7 @@ button.exp-switch{min-width:46px;min-height:26px}
           <button data-tab="expenses" data-short="Gastos" id="tab-expenses" onclick="switchTab('expenses')"
             class="tab-btn hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200">
             <i class="fa-solid fa-wallet"></i>
-            <span>Control de Gastos</span>
+            <span>Mis Gastos</span>
           </button>
           <button data-tab="admin-team" data-short="Equipo" id="tab-admin-team" onclick="switchTab('admin-team')"
             class="tab-btn hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200">
@@ -1168,7 +1236,7 @@ button.exp-switch{min-width:46px;min-height:26px}
         <button data-tab="team-schedule" data-short="Equipo" id="tab-team-schedule" onclick="switchTab('team-schedule')"
             class="tab-btn hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all duration-200">
             <i class="fa-solid fa-calendar-days"></i>
-            <span>Trabajadores</span>
+            <span>Operadores</span>
           </button><span id="tab-pill" aria-hidden="true"></span></nav>
       </div>
     </header>
@@ -1262,6 +1330,8 @@ button.exp-switch{min-width:46px;min-height:26px}
             </div>
             <div id="kpi-net-total" class="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400">Gs. 0</div>
             <div id="kpi-payment-status" class="text-xs text-emerald-200/80 mt-1.5">Pendiente de liquidación</div>
+            <button type="button" id="btn-cobrado" onclick="toggleMyMonthCobrado()" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-bold"><i class="fa-solid fa-hand-holding-dollar"></i><span>Marcar como cobrado</span></button>
+            <div id="cobrado-hint" class="hidden text-[11px] text-emerald-200/70 mt-2 leading-snug"></div>
           </div>
         </div>
 
@@ -1375,9 +1445,10 @@ button.exp-switch{min-width:46px;min-height:26px}
                 </div>
                 <input type="hidden" id="shift-ot-mode" value="comp" />
                 <div class="ot-seg" role="radiogroup" aria-label="Destino de las horas excedentes">
-                  <button type="button" id="ot-btn-comp" role="radio" aria-checked="true" onclick="setShiftFormMode('comp')" class="is-active"><i class="fa-solid fa-umbrella-beach"></i><span>Compensatorio</span><small>Predeterminado</small></button>
-                  <button type="button" id="ot-btn-pay" role="radio" aria-checked="false" onclick="setShiftFormMode('pay')"><i class="fa-solid fa-money-bill-wave"></i><span>Horas extras</span><small>Se pagan en Gs.</small></button>
+                  <button type="button" id="ot-btn-comp" role="radio" aria-checked="true" onclick="setShiftFormMode('comp')" class="is-active"><i class="fa-solid fa-umbrella-beach"></i><span>Bolsa de Compensatorio</span><small>Predeterminado</small></button>
+                  <button type="button" id="ot-btn-pay" role="radio" aria-checked="false" onclick="setShiftFormMode('pay')"><i class="fa-solid fa-money-bill-wave"></i><span>Horas Extras (Cobrar)</span><small>Se pagan en Gs.</small></button>
                 </div>
+                <p class="text-[11px] text-slate-400">Cada 8 h en la bolsa = 1 día libre pagado. El compensatorio no suma dinero extra al salario.</p>
               </div>
 
               <div>
@@ -1442,47 +1513,42 @@ button.exp-switch{min-width:46px;min-height:26px}
         </div>
       </section>
 
-      <!-- ================= TAB: CONTROL DE GASTOS (solo Admin / usuarios autorizados) ================= -->
+      <!-- ================= TAB: MIS GASTOS (billetera independiente, solo usuarios autorizados) ================= -->
       <section id="section-expenses" class="tab-content hidden space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Neto antes de gastos</span>
-            <div id="exp-kpi-before" class="text-xl sm:text-2xl font-extrabold font-mono text-white mt-2">Gs. 0</div>
-            <div class="text-xs text-slate-400 mt-1.5">Salario + recargos − vales</div>
-          </div>
-          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-            <span class="text-xs font-semibold uppercase tracking-wider text-rose-400">Descontado por gastos</span>
-            <div id="exp-kpi-spent" class="text-xl sm:text-2xl font-extrabold font-mono text-rose-400 mt-2">- Gs. 0</div>
-            <div id="exp-kpi-count" class="text-xs text-slate-400 mt-1.5">0 movimientos</div>
-          </div>
           <div class="bg-gradient-to-br from-emerald-950/70 to-slate-900 backdrop-blur-xl border border-emerald-500/40 rounded-2xl p-5 shadow-xl shadow-emerald-950/30">
-            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Neto final a cobrar</span>
-            <div id="exp-kpi-net" class="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400 mt-2">Gs. 0</div>
-            <div id="exp-kpi-status" class="text-xs text-emerald-200/80 mt-1.5">Pendiente de liquidación</div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Plata que ya es mía</span>
+            <div id="exp-kpi-balance" class="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400 mt-2">Gs. 0</div>
+            <div class="text-xs text-emerald-200/80 mt-1.5">Saldo disponible para gastar</div>
+          </div>
+          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total cobrado</span>
+            <div id="exp-kpi-credited" class="text-xl sm:text-2xl font-extrabold font-mono text-white mt-2">Gs. 0</div>
+            <div id="exp-kpi-credited-sub" class="text-xs text-slate-400 mt-1.5">0 meses cobrados</div>
+          </div>
+          <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+            <span class="text-xs font-semibold uppercase tracking-wider text-rose-400">Total gastado</span>
+            <div id="exp-kpi-spent" class="text-xl sm:text-2xl font-extrabold font-mono text-rose-400 mt-2">- Gs. 0</div>
+            <div id="exp-kpi-count" class="text-xs text-slate-400 mt-1.5">0 gastos</div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Formulario -->
           <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 h-fit shadow-xl">
-            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-1"><i class="fa-solid fa-circle-plus text-emerald-400"></i><span>Registrar movimiento</span></h3>
-            <p class="text-xs text-slate-400 mb-4">Cada registro se descuenta al instante de tu neto de <strong id="exp-month-label" class="text-slate-200"></strong>.</p>
+            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-1"><i class="fa-solid fa-circle-plus text-emerald-400"></i><span>Registrar gasto</span></h3>
+            <p class="text-xs text-slate-400 mb-4">Se descuenta solo de tu saldo ya cobrado. <strong class="text-slate-200">No afecta tu salario ni tu nómina.</strong></p>
 
             <form id="exp-form" onsubmit="addExpense(event)" class="space-y-3.5" autocomplete="off">
-              <input type="hidden" id="exp-type" value="gasto" />
-              <div class="ot-seg" role="radiogroup" aria-label="Tipo de movimiento">
-                <button type="button" id="exp-btn-gasto" role="radio" aria-checked="true" onclick="setExpenseType('gasto')" class="is-active"><i class="fa-solid fa-receipt"></i><span>Gasto</span><small>Compra o consumo</small></button>
-                <button type="button" id="exp-btn-anticipo" role="radio" aria-checked="false" onclick="setExpenseType('anticipo')"><i class="fa-solid fa-hand-holding-dollar"></i><span>Anticipo</span><small>Adelanto de sueldo</small></button>
-              </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1">Concepto</label>
-                <input type="text" id="exp-concept" list="exp-concept-list" required maxlength="60" placeholder="Ej: Almuerzo, transporte, adelanto…" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
-                <datalist id="exp-concept-list"><option value="Almuerzo"></option><option value="Transporte"></option><option value="Farmacia"></option><option value="Uniforme"></option><option value="Adelanto de sueldo"></option><option value="Otro"></option></datalist>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
+                <input type="text" id="exp-concept" list="exp-concept-list" required maxlength="60" placeholder="Ej: Almuerzo, transporte, farmacia…" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+                <datalist id="exp-concept-list"><option value="Almuerzo"></option><option value="Transporte"></option><option value="Farmacia"></option><option value="Supermercado"></option><option value="Alquiler"></option><option value="Otro"></option></datalist>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-semibold text-slate-300 mb-1">Monto (Gs.)</label>
-                  <input type="number" id="exp-amount" required min="1" step="1" inputmode="numeric" oninput="previewExpenseImpact()" placeholder="0" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm font-mono text-rose-300 focus:outline-none focus:border-emerald-500" />
+                  <input type="number" id="exp-amount" required min="1" step="1" inputmode="numeric" oninput="previewExpense()" placeholder="0" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm font-mono text-rose-300 focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-300 mb-1">Fecha</label>
@@ -1491,21 +1557,23 @@ button.exp-switch{min-width:46px;min-height:26px}
               </div>
               <div id="exp-preview" class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs space-y-1"></div>
               <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-minus"></i><span>Registrar y descontar del neto</span>
+                <i class="fa-solid fa-minus"></i><span>Registrar gasto</span>
               </button>
             </form>
           </div>
 
-          <!-- Historial e impacto -->
+          <!-- Billetera e historial -->
           <div class="lg:col-span-2 bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-              <div>
-                <h3 class="text-base font-bold text-white">Historial y efecto en tu liquidación</h3>
-                <p class="text-xs text-slate-400">Cada movimiento muestra cuánto te queda por cobrar después de aplicarlo</p>
-              </div>
-              <span id="exp-count-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 self-start sm:self-auto">0 movimientos</span>
+            <div class="mb-1">
+              <h3 class="text-base font-bold text-white">Mi billetera</h3>
+              <p class="text-xs text-slate-400">El dinero entra cuando marcas un mes como <strong class="text-slate-200">Cobrado</strong> en “Mi Resumen y Cobro”.</p>
             </div>
-            <div id="exp-impact" class="mb-4"></div>
+            <div id="exp-impact" class="mt-4 mb-4"></div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <h4 class="text-sm font-bold text-white">Mis gastos <span id="exp-count-badge" class="ml-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300">0</span></h4>
+              <select id="exp-month-filter" onchange="renderExpenses()" class="self-start sm:self-auto bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"></select>
+            </div>
             <div id="exp-list" class="space-y-2.5"></div>
           </div>
         </div>
@@ -1535,7 +1603,7 @@ button.exp-switch{min-width:46px;min-height:26px}
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
               <h3 class="text-base sm:text-lg font-bold text-white">Gestión de Compañeros y Liquidaciones</h3>
-              <p class="text-xs text-slate-400">Administra usuarios, horarios, estado de pago y quién puede usar el Control de Gastos. El salario de cada persona es privado. Si desactivas el acceso, los gastos ya registrados siguen descontándose de su liquidación.</p>
+              <p class="text-xs text-slate-400">Administra usuarios, horarios, estado de pago y quién puede ver la pestaña Mis Gastos. El salario de cada persona es privado. Mis Gastos es una billetera aparte: nunca modifica la nómina. Si quitas el acceso, la pestaña se oculta y los datos se conservan.</p>
             </div>
             <button onclick="openEmployeeModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition self-start sm:self-auto">
               <i class="fa-solid fa-user-plus"></i>
@@ -1551,7 +1619,7 @@ button.exp-switch{min-width:46px;min-height:26px}
                   <th class="py-3 px-3">Horario</th>
                   <th class="py-3 px-3 text-right">Compensatorios</th>
                   <th class="py-3 px-3 text-center">Estado Pago</th>
-                  <th class="py-3 px-3 text-center">Control de Gastos</th>
+                  <th class="py-3 px-3 text-center">Mis Gastos</th>
                   <th class="py-3 px-3 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -1650,7 +1718,7 @@ button.exp-switch{min-width:46px;min-height:26px}
       <section id="section-team-schedule" class="tab-content hidden space-y-6">
         <div id="team-list-view" class="space-y-4">
           <div>
-            <h3 class="text-base font-bold text-white">Trabajadores</h3>
+            <h3 class="text-base font-bold text-white">Operadores</h3>
             <p class="text-xs text-slate-400">Toca un nombre para ver sus horarios por semana o por mes.</p>
           </div>
           <div id="schedule-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
@@ -1712,9 +1780,9 @@ button.exp-switch{min-width:46px;min-height:26px}
             <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre Completo</label>
             <input type="text" id="emp-name" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
           </div>
-          <div>
+          <div id="emp-position-wrap">
             <label class="block text-xs font-semibold text-slate-300 mb-1">Puesto / Cargo</label>
-            <input type="text" id="emp-position" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="emp-position" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
@@ -1729,13 +1797,10 @@ button.exp-switch{min-width:46px;min-height:26px}
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Acceso</label>
-            <select id="emp-role" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
-              <option value="employee">Estándar</option>
-              <option value="boss">Ve los horarios del equipo</option>
-              <option value="admin">Gestiona equipo y ajustes</option>
-            </select>
+            <select id="emp-role" onchange="updateRoleHelp()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"></select>
           </div>
         </div>
+        <p id="emp-role-help" class="text-[11px] text-slate-400 -mt-1.5"></p>
 
         <div id="emp-salary-row" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
@@ -1748,24 +1813,24 @@ button.exp-switch{min-width:46px;min-height:26px}
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div id="emp-shift-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Turno</label>
-            <input type="text" id="emp-shift-name" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="emp-shift-name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Horario</label>
-            <input type="text" id="emp-shift-hours" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="emp-shift-hours" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Días</label>
-            <input type="text" id="emp-shift-days" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="emp-shift-days" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         <label class="flex items-center gap-2.5 p-3 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
           <input type="checkbox" id="emp-expenses" class="w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500" />
-          <span class="text-xs font-medium text-slate-200">Autorizar el módulo <strong>Control de Gastos</strong> (los gastos se descuentan de su neto)</span>
+          <span class="text-xs font-medium text-slate-200">Autorizar la pestaña <strong>Mis Gastos</strong> (billetera con el dinero que ya cobró; no afecta su nómina)</span>
         </label>
 
         <div id="emp-advance-row" class="hidden">
@@ -1800,8 +1865,35 @@ button.exp-switch{min-width:46px;min-height:26px}
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
 
+    /* ===== Roles ===== */
+    const ROLE_INFO = {
+      admin:      { label: 'Administrador', help: 'Gestiona usuarios, accesos y ajustes.' },
+      boss:       { label: 'Jefa',          help: 'Ve su propio panel y los horarios de los Operadores. No ve a los Individuales.' },
+      operator:   { label: 'Operador',      help: 'Maneja sus turnos y su salario privado. Su horario es visible para la Jefa.' },
+      individual: { label: 'Individual',    help: 'Uso 100% personal e independiente: no está vinculado ni es visible para la Jefa.' }
+    };
+    const roleLabel = r => (ROLE_INFO[r] || ROLE_INFO.individual).label;
+
+    /* Versiones anteriores: "employee" (Estándar) pasa a Operador; un rol desconocido pasa a Individual (el más privado) */
+    function normalizeRoles(st) {
+      (st.users || []).forEach(u => {
+        if (u.role === 'employee') u.role = 'operator';
+        else if (!ROLE_INFO[u.role]) u.role = 'individual';
+      });
+      return st;
+    }
+
+    /* ¿Puede "viewer" ver los horarios de "target"? Solo la Jefa, y solo de Operadores */
+    function canViewSchedule(viewer, target) {
+      const v = viewer && (appState.users.find(x => x.id === viewer.id) || viewer);
+      return !!v && !!target && v.role === 'boss' && target.role === 'operator' && v.id !== target.id;
+    }
+    function bossVisibleUsers() { return appState.users.filter(u => canViewSchedule(currentUser, u)); }
+
+    /* IDs de los usuarios de prueba de versiones anteriores */
+    const DEMO_USER_IDS = ['u-maikel', 'u-fabiola', 'u-alejandro', 'u-juvencio'];
+
     function getDefaultState() {
-      const currentMonth = getCurrentMonthStr();
       return {
         config: {
           companyName: 'Logística & Operaciones Paraguay S.A.',
@@ -1813,11 +1905,32 @@ button.exp-switch{min-width:46px;min-height:26px}
           holidayPct: 100
         },
         compUsed: [],
-        users: [],
+        // Único usuario por defecto: sin salario cargado (se lo pedirá en su primer ingreso)
+        users: [
+          {
+            id: 'u-admin', name: 'Administrador', username: 'admin', password: 'admin123',
+            role: 'admin', position: 'Administrador', baseSalary: 0, expensesEnabled: true,
+            shiftName: '', shiftHours: '', shiftDays: ''
+          }
+        ],
         shifts: [],
         expenses: [],
         monthlyMeta: {}
       };
+    }
+
+    /* Borra los usuarios de prueba (y sus turnos, metas, compensatorios y gastos) guardados en el celular */
+    function purgeDemoData(st) {
+      const isDemo = id => DEMO_USER_IDS.includes(id);
+      if (!Array.isArray(st.users) || !st.users.some(u => isDemo(u.id))) return st;
+      st.users = st.users.filter(u => !isDemo(u.id));
+      st.shifts = (st.shifts || []).filter(x => !isDemo(x.userId));
+      st.compUsed = (st.compUsed || []).filter(x => !isDemo(x.userId));
+      st.expenses = (st.expenses || []).filter(x => !isDemo(x.userId));
+      Object.keys(st.monthlyMeta || {}).forEach(k => {
+        if (DEMO_USER_IDS.some(id => k.startsWith(id + '_'))) delete st.monthlyMeta[k];
+      });
+      return st;
     }
 
     let appState = loadState();
@@ -1827,7 +1940,16 @@ button.exp-switch{min-width:46px;min-height:26px}
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) { const st = JSON.parse(raw); if (!Array.isArray(st.compUsed)) st.compUsed = []; if (!Array.isArray(st.expenses)) st.expenses = []; return st; }
+        if (raw) {
+          const st = normalizeRoles(purgeDemoData(JSON.parse(raw)));
+          if (!Array.isArray(st.compUsed)) st.compUsed = [];
+          if (!Array.isArray(st.expenses)) st.expenses = [];
+          // Mis Gastos: solo con autorización explícita. Los administradores existentes conservan el acceso que ya tenían.
+          (st.users || []).forEach(u => { if (u.role === 'admin' && typeof u.expensesEnabled !== 'boolean') u.expensesEnabled = true; });
+          if (!Array.isArray(st.users) || !st.users.length) st.users = getDefaultState().users;   // siempre existe al menos el Administrador
+          saveState(st);
+          return st;
+        }
       } catch (e) {}
       const def = getDefaultState();
       saveState(def);
@@ -1958,14 +2080,9 @@ button.exp-switch{min-width:46px;min-height:26px}
       const meta = appState.monthlyMeta[metaKey] || { advance: 0, paid: false, paidDate: null };
       const advanceGs = Number(meta.advance || 0);
 
-      // Gastos / anticipos registrados en el módulo Control de Gastos para este mes
-      const monthExpenses = (appState.expenses || [])
-        .filter(x => x.userId === userId && String(x.date).startsWith(monthStr))
-        .sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt || 0) - (b.createdAt || 0));
-      const expensesGs = monthExpenses.reduce((t, x) => t + Number(x.amount || 0), 0);
-
+      // Mis Gastos es una billetera aparte (dinero ya cobrado): NO interviene en la nómina.
       const grossTotal = user.baseSalary + nightBonusGs + holidayBonusGs + overtimeBonusGs;
-      const totalDeductionsGs = advanceGs + expensesGs;
+      const totalDeductionsGs = advanceGs;
       const netTotal = Math.max(0, grossTotal - totalDeductionsGs);
 
       return {
@@ -1975,10 +2092,11 @@ button.exp-switch{min-width:46px;min-height:26px}
         totalHours, totalNightHours, totalExtraHours, comp: compHours > 0, compHours, paidExtraHours, compDays: compHours / DAILY_LIMIT_H,
         nightBonusGs, holidayBonusGs, overtimeBonusGs,
         totalAllExtrasGs: holidayBonusGs + overtimeBonusGs,
-        advanceGs, expenses: monthExpenses, expensesGs, totalDeductionsGs,
+        advanceGs, totalDeductionsGs,
         uncoveredGs: Math.max(0, totalDeductionsGs - grossTotal),
         grossTotal, netTotal,
-        paid: Boolean(meta.paid), paidDate: meta.paidDate
+        paid: Boolean(meta.paid), paidDate: meta.paidDate,
+        paidNet: Number.isFinite(Number(meta.paidNet)) && meta.paid ? Number(meta.paidNet) : null
       };
     }
 
@@ -2008,10 +2126,12 @@ button.exp-switch{min-width:46px;min-height:26px}
       inspectedUserId = user.id;
       saveSession(user);
 
-      if (!(user.baseSalary > 0)) {
+      if (!user.baseSalary || user.baseSalary <= 0) {          // salario aún no configurado: pantalla obligatoria
         document.getElementById('app-view').classList.add('hidden');
         document.getElementById('login-view').classList.remove('hidden');
+        document.getElementById('setup-salary-name').textContent = user.name.split(' ')[0];
         showAuthPanel('salary');
+        setTimeout(() => document.getElementById('setup-salary').focus(), 60);
         return;
       }
       document.getElementById('login-view').classList.add('hidden');
@@ -2056,7 +2176,7 @@ button.exp-switch{min-width:46px;min-height:26px}
         name,
         username: email,                       // el correo es el identificador de ingreso
         password: pass,
-        role: appState.users.length === 0 ? 'admin' : 'employee',   // el primero es admin
+        role: appState.users.length === 0 ? 'admin' : 'individual',   // quien se registra solo es Individual (privado)
         position: 'Colaborador',
         baseSalary: Math.round(salary),
         expensesEnabled: false,                // el módulo Control de Gastos lo activa un administrador
@@ -2097,11 +2217,11 @@ button.exp-switch{min-width:46px;min-height:26px}
       const initials = currentUser.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
       document.getElementById('header-avatar').textContent = initials;
       document.getElementById('header-user-name').textContent = currentUser.name;
-      document.getElementById('header-user-role').textContent = currentUser.shiftName || '';
+      document.getElementById('header-user-role').textContent = roleLabel(currentUser.role) + (currentUser.shiftName ? ' · ' + currentUser.shiftName : '');
 
       document.getElementById('tab-admin-team').classList.toggle('hidden', !isAdmin);
       document.getElementById('tab-admin-settings').classList.toggle('hidden', !isAdmin);
-      document.getElementById('tab-team-schedule').classList.toggle('hidden', currentUser.role !== 'boss');
+      document.getElementById('tab-team-schedule').classList.toggle('hidden', currentUser.role !== 'boss');   // solo la Jefa
       syncExpensesTab();
       if (isAdmin) loadSettingsIntoForm();
     }
@@ -2168,7 +2288,9 @@ button.exp-switch{min-width:46px;min-height:26px}
         ? `${payroll.paidExtraHours.toFixed(1)} hrs pagadas · ${payroll.compHours.toFixed(1)} hrs → compensatorio`
         : `${payroll.paidExtraHours.toFixed(1)} hrs extras`;
       document.getElementById('kpi-net-total').textContent = formatPYG(payroll.netTotal);
-      document.getElementById('kpi-payment-status').innerHTML = payroll.paid ? `<span class="text-emerald-300 font-semibold"><i class="fa-solid fa-circle-check pop-in mr-1"></i>Pagado</span>` : `<span class="text-amber-300"><i class="fa-regular fa-clock fa-fade mr-1"></i>Pendiente</span>`;
+      document.getElementById('kpi-payment-status').innerHTML = payroll.paid ? `<span class="text-emerald-300 font-semibold"><i class="fa-solid fa-circle-check pop-in mr-1"></i>Cobrado</span>` : `<span class="text-amber-300"><i class="fa-regular fa-clock fa-fade mr-1"></i>Pendiente</span>`;
+
+      renderCobradoButton(payroll);
 
       document.getElementById('assigned-shift-name').textContent = payroll.user.shiftName;
       document.getElementById('assigned-shift-hours').textContent = payroll.user.shiftHours;
@@ -2195,10 +2317,6 @@ button.exp-switch{min-width:46px;min-height:26px}
           <div><span class="text-rose-300 font-medium">Anticipos / Descuentos</span><span class="block text-xs text-slate-500">Vales del mes</span></div>
           <span class="font-mono font-semibold text-rose-400">- ${formatPYG(payroll.advanceGs)}</span>
         </div>
-        ${(payroll.expensesGs > 0 || canUseExpenses(currentUser)) ? `<div class="flex items-center justify-between py-2 border-b border-slate-800/60">
-          <div><span class="text-rose-300 font-medium"><i class="fa-solid fa-wallet mr-1.5"></i>Gastos y anticipos registrados</span><span class="block text-xs text-slate-500">${payroll.expenses.length} movimiento(s) del Control de Gastos</span></div>
-          <span class="font-mono font-semibold text-rose-400">- ${formatPYG(payroll.expensesGs)}</span>
-        </div>` : ''}
         <div class="flex items-center justify-between pt-3">
           <span class="text-base font-bold text-white">TOTAL NETO A PERCIBIR</span>
           <span class="text-lg sm:text-xl font-extrabold font-mono text-emerald-400">${formatPYG(payroll.netTotal)}</span>
@@ -2348,7 +2466,7 @@ button.exp-switch{min-width:46px;min-height:26px}
         const rows = [
           `<div class="row"><span>Horas nocturnas</span><span>${fmtH(r.totalNightHours)}</span></div>`,
           `<div class="row"><span>Horas excedentes</span><span>${fmtH(r.excessHours)}${r.hasExcess ? (toComp ? ' · a compensatorio' : ' · pagadas') : ''}</span></div>`,
-          r.hasExcess && s.userId === currentUser.id ? `<div class="shift-dest"><span>Destino del excedente</span><div class="ot-seg ot-seg-sm"><button type="button" class="${toComp ? 'is-active' : ''}" onclick="setShiftOvertimeMode('${s.id}','comp')"><i class="fa-solid fa-umbrella-beach"></i>Compensatorio</button><button type="button" class="${toComp ? '' : 'is-active'}" onclick="setShiftOvertimeMode('${s.id}','pay')"><i class="fa-solid fa-money-bill-wave"></i>Pagadas</button></div></div>` : '',
+          r.hasExcess && s.userId === currentUser.id ? `<div class="shift-dest"><span>Destino del excedente</span><div class="ot-seg ot-seg-sm"><button type="button" class="${toComp ? 'is-active' : ''}" onclick="setShiftOvertimeMode('${s.id}','comp')"><i class="fa-solid fa-umbrella-beach"></i>Compensatorio</button><button type="button" class="${toComp ? '' : 'is-active'}" onclick="setShiftOvertimeMode('${s.id}','pay')"><i class="fa-solid fa-money-bill-wave"></i>Cobrar</button></div></div>` : '',
           r.nightRecargoGs > 0 ? `<div class="row"><span>Recargo nocturno</span><span>+ ${formatPYG(r.nightRecargoGs)}</span></div>` : '',
           r.holidayRecargoGs > 0 ? `<div class="row"><span>Recargo feriado</span><span>+ ${formatPYG(r.holidayRecargoGs)}</span></div>` : '',
           extrasGs > 0 ? `<div class="row"><span>Pago de extras</span><span>+ ${formatPYG(extrasGs)}</span></div>` : '',
@@ -2389,9 +2507,9 @@ button.exp-switch{min-width:46px;min-height:26px}
             <td class="py-3.5 px-3 text-xs text-slate-400">${p.paidDate || `${m}-05`}</td>
             <td class="py-3.5 px-3 text-right font-mono text-slate-300">${formatPYG(p.baseSalary)}</td>
             <td class="py-3.5 px-3 text-right font-mono text-blue-300">+ ${formatPYG(totalExtras)}</td>
-            <td class="py-3.5 px-3 text-right font-mono text-rose-400">- ${formatPYG(p.advanceGs + p.expensesGs)}</td>
+            <td class="py-3.5 px-3 text-right font-mono text-rose-400">- ${formatPYG(p.advanceGs)}</td>
             <td class="py-3.5 px-3 text-right font-mono font-bold text-emerald-400">${formatPYG(p.netTotal)}</td>
-            <td class="py-3.5 px-3 text-center">${p.paid ? '<span class="badge badge-paid"><i class="fa-solid fa-check"></i>Pagado</span>' : '<span class="badge badge-pending"><span class="dot"></span>Pendiente</span>'}</td>
+            <td class="py-3.5 px-3 text-center">${p.paid ? '<span class="badge badge-paid"><i class="fa-solid fa-check"></i>Cobrado</span>' : '<span class="badge badge-pending"><span class="dot"></span>Pendiente</span>'}</td>
             <td class="py-3.5 px-3 text-right"><button onclick="openReceiptModal('${userId}', '${m}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-200 text-xs"><i class="fa-solid fa-file-invoice mr-1"></i>Recibo</button></td>
           </tr>
         `;
@@ -2425,7 +2543,6 @@ button.exp-switch{min-width:46px;min-height:26px}
           <div class="flex justify-between"><span class="text-slate-300">Horas Extras / Feriados</span><span class="font-mono text-amber-300">+ ${formatPYG(p.totalAllExtrasGs)}</span></div>
           ${p.comp ? `<div class="flex justify-between"><span class="text-slate-300">Excedentes a compensatorio (no pagadas)</span><span class="font-mono text-emerald-300">${p.compHours.toFixed(1)} h · ≈ ${p.compDays.toFixed(1)} día(s)</span></div>` : ''}
           <div class="flex justify-between"><span class="text-slate-300">Anticipos</span><span class="font-mono text-rose-400">- ${formatPYG(p.advanceGs)}</span></div>
-          ${p.expensesGs > 0 ? `<div class="flex justify-between"><span class="text-slate-300">Gastos y anticipos registrados (${p.expenses.length})</span><span class="font-mono text-rose-400">- ${formatPYG(p.expensesGs)}</span></div>` : ''}
         </div>
         <div class="flex items-center justify-between bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-4 mb-6">
           <span class="font-bold text-base text-white">TOTAL NETO</span>
@@ -2451,13 +2568,11 @@ button.exp-switch{min-width:46px;min-height:26px}
         compDays += cs.days;
         return `
           <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-3.5 px-3"><div class="font-bold text-white">${esc(u.name)}</div></td>
+            <td class="py-3.5 px-3"><div class="font-bold text-white">${esc(u.name)}</div><div class="text-[11px] text-slate-400">${roleLabel(u.role)}</div></td>
             <td class="py-3.5 px-3 text-xs text-slate-300">${esc(u.shiftName)}<span class="block font-mono text-slate-500">${esc(u.shiftHours)}</span></td>
             <td class="py-3.5 px-3 text-right font-mono text-emerald-300">${cs.days} día(s)</td>
             <td class="py-3.5 px-3 text-center"><button onclick="togglePaid('${u.id}', '${monthStr}')" title="Cambiar estado" class="badge ${paid ? 'badge-paid' : 'badge-pending'}">${paid ? '<i class="fa-solid fa-check"></i>Pagado' : '<span class="dot"></span>Pendiente'}</button></td>
-            <td class="py-3.5 px-3 text-center">${u.role === 'admin'
-              ? '<span class="badge badge-paid" title="Los administradores siempre tienen acceso"><i class="fa-solid fa-shield-halved"></i>Siempre</span>'
-              : `<button type="button" role="switch" aria-checked="${u.expensesEnabled === true}" onclick="toggleExpensesAccess('${u.id}')" title="${u.expensesEnabled ? 'Quitar acceso' : 'Autorizar acceso'}" class="exp-switch ${u.expensesEnabled ? 'is-on' : ''}"><span></span></button>`}</td>
+            <td class="py-3.5 px-3 text-center"><button type="button" role="switch" aria-checked="${u.expensesEnabled === true}" onclick="toggleExpensesAccess('${u.id}')" title="${u.expensesEnabled ? 'Quitar acceso' : 'Autorizar acceso'}" class="exp-switch ${u.expensesEnabled ? 'is-on' : ''}"><span></span></button></td>
             <td class="py-3.5 px-3 text-right space-x-1">
               <button onclick="openEmployeeModal('${u.id}')" title="Editar" class="p-1.5 rounded bg-slate-800 text-slate-300 hover:text-white"><i class="fa-solid fa-pen"></i></button>
               <button onclick="openPasswordModal('${u.id}')" title="Cambiar contraseña" class="p-1.5 rounded bg-slate-800 text-slate-300 hover:text-white"><i class="fa-solid fa-key"></i></button>
@@ -2482,7 +2597,8 @@ button.exp-switch{min-width:46px;min-height:26px}
     const dmy = d => `${d.getDate()}/${d.getMonth() + 1}`;
 
     function openTeamMember(id) {
-      if (!currentUser || currentUser.role !== 'boss') return;
+      const target = appState.users.find(u => u.id === id);
+      if (!canViewSchedule(currentUser, target)) return;          // la Jefa solo abre Operadores
       teamSelectedId = id;
       teamView = 'week';
       teamWeekStart = isoLocal(mondayOf(new Date()));
@@ -2504,7 +2620,8 @@ button.exp-switch{min-width:46px;min-height:26px}
 
     function renderTeamSchedule(monthStr) {
       const listView = document.getElementById('team-list-view'), detailView = document.getElementById('team-detail-view');
-      const sel = appState.users.find(u => u.id === teamSelectedId);
+      const team = bossVisibleUsers();                              // solo Operadores: los Individuales nunca aparecen
+      const sel = team.find(u => u.id === teamSelectedId);
       if (sel) {
         listView.classList.add('hidden');
         detailView.classList.remove('hidden');
@@ -2514,16 +2631,19 @@ button.exp-switch{min-width:46px;min-height:26px}
       teamSelectedId = null;
       detailView.classList.add('hidden');
       listView.classList.remove('hidden');
-      document.getElementById('schedule-cards').innerHTML = appState.users.map(u => {
+      document.getElementById('schedule-cards').innerHTML = !team.length
+        ? '<div class="shift-empty">Aún no hay Operadores vinculados.</div>'
+        : team.map(u => {
         const live = window.isLiveShift && window.isLiveShift(u);
         const cs = compStats(u.id);
         let hrs = 0;
         appState.shifts.filter(s => s.userId === u.id && s.date.startsWith(monthStr)).forEach(s => { hrs += analyzeShift(s, u.baseSalary, appState.config).totalHours; });
+        const sched = [u.shiftHours, u.shiftDays].filter(Boolean).map(esc).join(' · ') || 'Sin horario cargado';
         return `
           <button type="button" onclick="openTeamMember('${u.id}')" class="w-full text-left bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 hover:border-emerald-500/40 rounded-2xl p-5 shadow-xl transition">
             <div class="flex items-center gap-3">
               <div class="profile-avatar" style="width:40px;height:40px;font-size:15px">${esc(u.name.trim()[0] || '?').toUpperCase()}</div>
-              <div class="min-w-0 flex-1"><div class="font-semibold text-white truncate">${esc(u.name)}</div><div class="text-xs text-slate-400 truncate">${esc(u.shiftHours)} · ${esc(u.shiftDays)}</div></div>
+              <div class="min-w-0 flex-1"><div class="font-semibold text-white truncate">${esc(u.name)}</div><div class="text-xs text-slate-400 truncate">${sched}</div></div>
               ${live ? '<span class="badge badge-live"><span class="dot"></span>En turno</span>' : '<i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>'}
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-2 gap-2 text-center">
@@ -2596,12 +2716,15 @@ button.exp-switch{min-width:46px;min-height:26px}
       document.getElementById('team-detail-body').innerHTML = html;
     }
 
-    /* ===================== CONTROL DE GASTOS ===================== */
-    /* Acceso: administradores (siempre) y usuarios que un admin haya autorizado (expensesEnabled). */
+    /* ===================== MIS GASTOS (billetera independiente) ===================== */
+    /* La billetera guarda el dinero NETO de los meses que el usuario marcó como "Cobrado".
+       Los gastos se restan solo de ese saldo; nunca tocan el salario en curso ni la nómina. */
+
+    /* Acceso: únicamente quien un administrador haya autorizado de forma explícita (expensesEnabled). */
     function canUseExpenses(u) {
       if (!u) return false;
       const f = appState.users.find(x => x.id === u.id) || u;     // siempre con el dato más reciente
-      return f.role === 'admin' || f.expensesEnabled === true;
+      return f.expensesEnabled === true;
     }
 
     /* Muestra/oculta la pestaña según el permiso y expulsa de la sección si ya no hay acceso */
@@ -2618,145 +2741,173 @@ button.exp-switch{min-width:46px;min-height:26px}
     function toggleExpensesAccess(userId) {
       if (!currentUser || currentUser.role !== 'admin') { showToast('Solo un administrador puede autorizar', 'error'); return; }
       const u = appState.users.find(x => x.id === userId);
-      if (!u || u.role === 'admin') return;
+      if (!u) return;
       u.expensesEnabled = !u.expensesEnabled;
       saveState();
       renderAll();
-      showToast(u.expensesEnabled ? `Control de Gastos activado para ${u.name}` : `Control de Gastos desactivado para ${u.name}`);
+      showToast(u.expensesEnabled ? `Mis Gastos activado para ${u.name}` : `Mis Gastos desactivado para ${u.name}`);
     }
 
-    function setExpenseType(type) {
-      document.getElementById('exp-type').value = type === 'anticipo' ? 'anticipo' : 'gasto';
-      ['gasto', 'anticipo'].forEach(t => {
-        const b = document.getElementById('exp-btn-' + t);
-        b.classList.toggle('is-active', t === document.getElementById('exp-type').value);
-        b.setAttribute('aria-checked', t === document.getElementById('exp-type').value);
+    /* Meses cobrados = ingresos de la billetera. Se usa el neto "congelado" al marcar Cobrado,
+       así un cambio posterior de salario o anticipo no altera el dinero que ya se cobró. */
+    function walletCredits(userId) {
+      const out = [];
+      Object.keys(appState.monthlyMeta || {}).forEach(k => {
+        if (!k.startsWith(userId + '_')) return;
+        const meta = appState.monthlyMeta[k];
+        if (!meta || !meta.paid) return;
+        const month = k.slice(userId.length + 1);
+        const snap = Number(meta.paidNet);
+        const amount = Number.isFinite(snap) && meta.paidNet !== null && meta.paidNet !== undefined
+          ? snap
+          : ((calculateMonthlyPayroll(userId, month) || {}).netTotal || 0);   // meses cobrados antes de existir Mis Gastos
+        out.push({ month, amount: Math.max(0, Math.round(amount)), paidDate: meta.paidDate || null });
       });
+      return out.sort((a, b) => b.month.localeCompare(a.month));
     }
 
-    function expenseMonth() { return document.getElementById('period-month-picker').value || getCurrentMonthStr(); }
+    function walletSummary(userId) {
+      const credits = walletCredits(userId);
+      const expenses = (appState.expenses || []).filter(x => x.userId === userId);
+      const credited = credits.reduce((t, c) => t + c.amount, 0);
+      const spent = expenses.reduce((t, x) => t + Number(x.amount || 0), 0);
+      return { credits, expenses, credited, spent, balance: credited - spent };
+    }
 
-    function previewExpenseImpact() {
+    /* El usuario marca / desmarca su propio mes como Cobrado (botón del Resumen) */
+    function toggleMyMonthCobrado() {
+      if (!currentUser) return;
+      const monthStr = document.getElementById('period-month-picker').value || getCurrentMonthStr();
+      const meta = appState.monthlyMeta[`${currentUser.id}_${monthStr}`] || {};
+      if (meta.paid && !confirm('¿Quitar la marca de Cobrado de este mes? El dinero saldrá de tu billetera de Mis Gastos.')) return;
+      togglePaid(currentUser.id, monthStr);
+    }
+
+    function renderCobradoButton(payroll) {
+      const btn = document.getElementById('btn-cobrado'), hint = document.getElementById('cobrado-hint');
+      if (!btn) return;
+      btn.querySelector('span').textContent = payroll.paid ? 'Cobrado · deshacer' : 'Marcar como cobrado';
+      btn.className = 'mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold ' +
+        (payroll.paid ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950');
+      if (canUseExpenses(currentUser)) {
+        hint.classList.remove('hidden');
+        hint.textContent = payroll.paid
+          ? `${formatPYG(payroll.paidNet != null ? payroll.paidNet : payroll.netTotal)} ya están en tu billetera de Mis Gastos.`
+          : 'Al marcarlo, este neto pasa a tu billetera de Mis Gastos.';
+      } else hint.classList.add('hidden');
+    }
+
+    function previewExpense() {
       const box = document.getElementById('exp-preview');
       if (!box || !currentUser) return;
-      const monthStr = expenseMonth();
-      const p = calculateMonthlyPayroll(currentUser.id, monthStr);
-      if (!p) return;
+      const w = walletSummary(currentUser.id);
       const amt = Math.round(Number(document.getElementById('exp-amount').value) || 0);
-      const after = Math.max(0, p.netTotal - amt);
-      const over = amt > p.netTotal;
+      const after = w.balance - amt;
       box.innerHTML = `
-        <div class="flex justify-between text-slate-300"><span>Neto actual</span><span class="font-mono">${formatPYG(p.netTotal)}</span></div>
-        <div class="flex justify-between text-rose-400"><span>Este movimiento</span><span class="font-mono">- ${formatPYG(amt)}</span></div>
-        <div class="flex justify-between pt-1 border-t border-emerald-500/20 font-semibold text-emerald-400"><span>Neto después</span><span class="font-mono">${formatPYG(after)}</span></div>
-        ${over ? '<div class="text-amber-300 pt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Supera tu neto disponible: el neto quedará en Gs. 0.</div>' : ''}`;
+        <div class="flex justify-between text-slate-300"><span>Saldo disponible</span><span class="font-mono">${formatPYG(w.balance)}</span></div>
+        <div class="flex justify-between text-rose-400"><span>Este gasto</span><span class="font-mono">- ${formatPYG(amt)}</span></div>
+        <div class="flex justify-between pt-1 border-t border-emerald-500/20 font-semibold ${after < 0 ? 'text-amber-300' : 'text-emerald-400'}"><span>Saldo después</span><span class="font-mono">${formatPYG(after)}</span></div>
+        ${after < 0 ? `<div class="text-amber-300 pt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${w.credited === 0 ? 'Aún no tienes dinero cobrado: marca un mes como Cobrado primero.' : 'El gasto supera tu saldo disponible.'}</div>` : ''}`;
     }
 
     function addExpense(e) {
       e.preventDefault();
       const u = currentUser && appState.users.find(x => x.id === currentUser.id);
-      if (!canUseExpenses(u)) { showToast('No tienes autorización para el Control de Gastos', 'error'); return; }
+      if (!canUseExpenses(u)) { showToast('No tienes autorización para usar Mis Gastos', 'error'); return; }
 
-      const monthStr = expenseMonth();
-      const type = document.getElementById('exp-type').value === 'anticipo' ? 'anticipo' : 'gasto';
       const concept = document.getElementById('exp-concept').value.trim();
       const amount = Math.round(Number(document.getElementById('exp-amount').value));
       const date = document.getElementById('exp-date').value;
 
-      if (!concept) { showToast('Escribe el concepto', 'error'); return; }
+      if (!concept) { showToast('Escribe la descripción', 'error'); return; }
       if (!Number.isFinite(amount) || amount <= 0) { showToast('Ingresa un monto válido', 'error'); return; }
       if (amount > 1e10) { showToast('El monto es demasiado grande', 'error'); return; }
-      if (!date || !date.startsWith(monthStr)) { showToast('La fecha debe estar dentro del período seleccionado', 'error'); return; }
-      const meta = appState.monthlyMeta[`${u.id}_${monthStr}`];
-      if (meta && meta.paid) { showToast('Ese mes ya está pagado, no se pueden agregar movimientos', 'error'); return; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { showToast('Elige una fecha válida', 'error'); return; }
 
-      const before = calculateMonthlyPayroll(u.id, monthStr);
-      appState.expenses.push({ id: 'x-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), userId: u.id, date, amount, type, concept, createdAt: Date.now() });
+      const w = walletSummary(u.id);
+      if (amount > w.balance) {
+        showToast(w.credited === 0 ? 'Aún no tienes dinero cobrado. Marca un mes como Cobrado primero.' : `Saldo insuficiente: tienes ${formatPYG(w.balance)}`, 'error');
+        return;
+      }
+
+      appState.expenses.push({ id: 'x-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), userId: u.id, date, amount, concept, createdAt: Date.now() });
       saveState();
       document.getElementById('exp-concept').value = '';
       document.getElementById('exp-amount').value = '';
-      setExpenseType('gasto');
       renderAll();
-      const after = calculateMonthlyPayroll(u.id, monthStr);
-      showToast(amount > before.netTotal
-        ? `Registrado: - ${formatPYG(amount)} · el neto queda en ${formatPYG(after.netTotal)}`
-        : `Registrado: - ${formatPYG(amount)} · Neto: ${formatPYG(after.netTotal)}`);
+      showToast(`Gasto registrado: - ${formatPYG(amount)} · Saldo: ${formatPYG(w.balance - amount)}`);
     }
 
     function deleteExpense(id) {
       const x = appState.expenses.find(e => e.id === id);
       if (!x || !currentUser || x.userId !== currentUser.id || !canUseExpenses(currentUser)) return;
-      const meta = appState.monthlyMeta[`${x.userId}_${x.date.slice(0, 7)}`];
-      if (meta && meta.paid) { showToast('Ese mes ya está pagado, no se puede modificar', 'error'); return; }
       appState.expenses = appState.expenses.filter(e => e.id !== id);
       saveState();
       renderAll();
-      showToast('Movimiento eliminado: se devolvió al neto', 'info');
+      showToast('Gasto eliminado: el monto volvió a tu saldo');
     }
 
-    function renderExpenses(monthStr, payroll) {
+    function renderExpenses() {
       const list = document.getElementById('exp-list');
-      if (!list) return;
-      const [yy, mm] = monthStr.split('-').map(Number);
-      document.getElementById('exp-month-label').textContent = `${MON_ES[mm - 1]} ${yy}`;
+      if (!list || !currentUser) return;
+      const w = walletSummary(currentUser.id);
 
-      // La fecha del formulario se limita al período que se está viendo
+      // Fecha por defecto: hoy
       const dateEl = document.getElementById('exp-date');
-      dateEl.min = `${monthStr}-01`;
-      dateEl.max = `${monthStr}-${String(new Date(yy, mm, 0).getDate()).padStart(2, '0')}`;
-      if (!dateEl.value || !dateEl.value.startsWith(monthStr)) dateEl.value = getCurrentMonthStr() === monthStr ? isoLocal(new Date()) : `${monthStr}-01`;
+      if (!dateEl.value) dateEl.value = isoLocal(new Date());
 
-      const before = Math.max(0, payroll.grossTotal - payroll.advanceGs);
-      document.getElementById('exp-kpi-before').textContent = formatPYG(before);
-      document.getElementById('exp-kpi-spent').textContent = '- ' + formatPYG(payroll.expensesGs);
-      document.getElementById('exp-kpi-count').textContent = `${payroll.expenses.length} movimiento${payroll.expenses.length === 1 ? '' : 's'}`;
-      document.getElementById('exp-kpi-net').textContent = formatPYG(payroll.netTotal);
-      document.getElementById('exp-kpi-status').innerHTML = payroll.paid
-        ? '<span class="font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Mes pagado</span>' : 'Pendiente de liquidación';
-      document.getElementById('exp-count-badge').textContent = `${payroll.expenses.length} movimiento${payroll.expenses.length === 1 ? '' : 's'}`;
+      // KPIs
+      document.getElementById('exp-kpi-balance').textContent = (w.balance < 0 ? '- ' : '') + formatPYG(Math.abs(w.balance));
+      document.getElementById('exp-kpi-credited').textContent = formatPYG(w.credited);
+      document.getElementById('exp-kpi-credited-sub').textContent = `${w.credits.length} mes${w.credits.length === 1 ? '' : 'es'} cobrado${w.credits.length === 1 ? '' : 's'}`;
+      document.getElementById('exp-kpi-spent').textContent = '- ' + formatPYG(w.spent);
+      document.getElementById('exp-kpi-count').textContent = `${w.expenses.length} gasto${w.expenses.length === 1 ? '' : 's'}`;
 
-      // Impacto en la liquidación
-      const pct = payroll.grossTotal > 0 ? Math.min(100, (payroll.totalDeductionsGs / payroll.grossTotal) * 100) : 0;
+      // Billetera: barra + meses cobrados
+      const pct = w.credited > 0 ? Math.min(100, (w.spent / w.credited) * 100) : 0;
       document.getElementById('exp-impact').innerHTML = `
         <div class="exp-impact">
-          <div class="exp-bar"><span style="width:${pct.toFixed(0)}%"></span></div>
-          <div class="text-[11px] text-slate-400 mt-1.5">${pct.toFixed(0)}% de tu salario del mes ya está descontado</div>
-          <div class="exp-sum mt-3">
-            <div class="row"><span>Salario bruto del mes (base + recargos)</span><span>${formatPYG(payroll.grossTotal)}</span></div>
-            ${payroll.advanceGs > 0 ? `<div class="row neg"><span>Anticipo / vales de la ficha</span><span>- ${formatPYG(payroll.advanceGs)}</span></div>` : ''}
-            <div class="row neg"><span>Gastos y anticipos registrados (${payroll.expenses.length})</span><span>- ${formatPYG(payroll.expensesGs)}</span></div>
-            <div class="row total"><span>Neto final a cobrar</span><span>${formatPYG(payroll.netTotal)}</span></div>
-          </div>
-          ${payroll.uncoveredGs > 0 ? `<div class="text-xs text-amber-300 mt-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Los descuentos superan tu salario en ${formatPYG(payroll.uncoveredGs)}; el neto queda en Gs. 0.</div>` : ''}
+          <div class="exp-bar ok"><span style="width:${pct.toFixed(0)}%"></span></div>
+          <div class="text-[11px] text-slate-400 mt-1.5">${w.credited > 0 ? `Gastaste el ${pct.toFixed(0)}% de lo que ya cobraste` : 'Todavía no hay dinero cobrado en tu billetera'}</div>
+          ${w.credits.length ? `<div class="exp-sum mt-3">
+            ${w.credits.map(c => `<div class="row"><span><i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i>Cobrado ${esc(MON_ES[Number(c.month.slice(5, 7)) - 1] || c.month)} ${esc(c.month.slice(0, 4))}</span><span>+ ${formatPYG(c.amount)}</span></div>`).join('')}
+            <div class="row neg"><span>Gastos registrados (${w.expenses.length})</span><span>- ${formatPYG(w.spent)}</span></div>
+            <div class="row total"><span>Saldo disponible</span><span>${formatPYG(w.balance)}</span></div>
+          </div>` : `<div class="text-xs text-slate-300 mt-3"><i class="fa-solid fa-circle-info text-emerald-500 mr-1"></i>Ve a <strong>Mi Resumen y Cobro</strong> y pulsa <strong>Marcar como cobrado</strong> para que el neto del mes pase a tu billetera.</div>`}
         </div>`;
 
-      // Historial: saldo acumulado en orden cronológico, mostrado del más reciente al más antiguo
-      if (!payroll.expenses.length) {
-        list.innerHTML = '<div class="shift-empty"><i class="fa-solid fa-wallet" style="font-size:20px;display:block;margin-bottom:8px"></i>Sin movimientos en este período.</div>';
+      // Filtro por mes (se conserva la selección)
+      const sel = document.getElementById('exp-month-filter');
+      const prev = sel.value || 'all';
+      const months = Array.from(new Set(w.expenses.map(x => x.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
+      sel.innerHTML = '<option value="all">Todos los meses</option>' + months.map(m => `<option value="${m}">${MON_ES[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}</option>`).join('');
+      sel.value = months.includes(prev) ? prev : 'all';
+
+      const shown = w.expenses
+        .filter(x => sel.value === 'all' || x.date.startsWith(sel.value))
+        .sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
+      document.getElementById('exp-count-badge').textContent = shown.length;
+
+      if (!shown.length) {
+        list.innerHTML = '<div class="shift-empty"><i class="fa-solid fa-wallet" style="font-size:20px;display:block;margin-bottom:8px"></i>Sin gastos registrados.</div>';
       } else {
-        let run = payroll.grossTotal - payroll.advanceGs;
-        const rows = payroll.expenses.map(x => { run -= Number(x.amount); return { x, bal: run }; }).reverse();
-        list.innerHTML = rows.map(({ x, bal }) => {
-          const isAdv = x.type === 'anticipo';
-          return `
-            <article class="exp-item">
-              <div class="exp-ico ${isAdv ? 'adv' : ''}"><i class="fa-solid ${isAdv ? 'fa-hand-holding-dollar' : 'fa-receipt'}"></i></div>
-              <div class="exp-main">
-                <div class="exp-concept">${esc(x.concept)}</div>
-                <div class="exp-meta">${x.date.slice(8, 10)}/${x.date.slice(5, 7)} · ${isAdv ? 'Anticipo' : 'Gasto'}</div>
-                <div class="exp-after">Neto tras este movimiento: <b>${formatPYG(Math.max(0, bal))}</b>${bal < 0 ? ' <span class="text-amber-300">(excede)</span>' : ''}</div>
-              </div>
-              <div class="exp-amt">
-                <b>- ${formatPYG(x.amount)}</b>
-                ${payroll.paid ? '' : `<button type="button" onclick="deleteExpense('${x.id}')" title="Eliminar y devolver al neto" aria-label="Eliminar"><i class="fa-solid fa-trash-can"></i></button>`}
-              </div>
-            </article>`;
-        }).join('');
+        list.innerHTML = shown.map(x => `
+          <article class="exp-item" data-id="${esc(x.id)}">
+            <div class="exp-ico"><i class="fa-solid fa-receipt"></i></div>
+            <div class="exp-main">
+              <div class="exp-concept">${esc(x.concept)}</div>
+              <div class="exp-meta">${esc(x.date.slice(8, 10))}/${esc(x.date.slice(5, 7))}/${esc(x.date.slice(0, 4))}</div>
+            </div>
+            <div class="exp-amt">
+              <b>- ${formatPYG(x.amount)}</b>
+              <button type="button" onclick="deleteExpense('${esc(x.id)}')" title="Eliminar y devolver a mi saldo" aria-label="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </article>`).join('');
       }
-      previewExpenseImpact();
+      previewExpense();
     }
 
-    /* ===== Compensatorios (8 h extra acumuladas = 1 día libre pagado) ===== */
+        /* ===== Compensatorios (8 h extra acumuladas = 1 día libre pagado) ===== */
     function compStats(uid) {
       const user = appState.users.find(u => u.id === uid);
       let earned = 0;
@@ -2987,40 +3138,81 @@ button.exp-switch{min-width:46px;min-height:26px}
     function togglePaid(userId, monthStr) {
       const key = `${userId}_${monthStr}`;
       const meta = appState.monthlyMeta[key] || { advance: 0, paid: false };
-      meta.paid = !meta.paid;
-      meta.paidDate = meta.paid ? new Date().toISOString().split('T')[0] : null;
+      if (!meta.paid) {
+        // Cobrado: se congela el neto del mes; ese dinero pasa a la billetera de Mis Gastos
+        const p = calculateMonthlyPayroll(userId, monthStr);
+        meta.paid = true;
+        meta.paidNet = Math.round(p ? p.netTotal : 0);
+        meta.paidDate = new Date().toISOString().split('T')[0];
+      } else {
+        // Deshacer: no se permite si ya se gastó parte de ese dinero
+        const w = walletSummary(userId);
+        const credit = (w.credits.find(c => c.month === monthStr) || { amount: 0 }).amount;
+        if (w.balance - credit < 0) {
+          showToast(`No se puede deshacer: ya gastaste dinero de tu billetera (saldo ${formatPYG(w.balance)}, este mes aportó ${formatPYG(credit)}). Elimina gastos primero.`, 'error');
+          return;
+        }
+        meta.paid = false;
+        meta.paidDate = null;
+        meta.paidNet = null;
+      }
       appState.monthlyMeta[key] = meta;
       saveState();
       renderAll();
-      showToast('Estado de pago actualizado');
+      const u = appState.users.find(x => x.id === userId);
+      showToast(meta.paid
+        ? (u && u.expensesEnabled ? `Mes cobrado: ${formatPYG(meta.paidNet)} pasaron a Mis Gastos` : 'Mes marcado como cobrado')
+        : 'Mes marcado como pendiente');
+    }
+
+    /* Selector de rol: al crear solo existen Jefa / Operador / Individual.
+       "Administrador" aparece únicamente al editar a un administrador existente. */
+    function populateRoleSelect(selected) {
+      const keys = ['boss', 'operator', 'individual'];
+      if (selected === 'admin') keys.unshift('admin');
+      const sel = document.getElementById('emp-role');
+      sel.innerHTML = keys.map(k => `<option value="${k}">${ROLE_INFO[k].label}</option>`).join('');
+      sel.value = keys.includes(selected) ? selected : 'individual';
+      updateRoleHelp();
+    }
+    function updateRoleHelp() {
+      const r = document.getElementById('emp-role').value;
+      document.getElementById('emp-role-help').textContent = (ROLE_INFO[r] || ROLE_INFO.individual).help;
     }
 
     function openEmployeeModal(userId = null) {
+      if (!currentUser || currentUser.role !== 'admin') return;
       const monthStr = document.getElementById('period-month-picker').value || getCurrentMonthStr();
+      const isNew = !userId;
       if (userId) {
         const u = appState.users.find(x => x.id === userId);
+        if (!u) return;
         const meta = appState.monthlyMeta[`${userId}_${monthStr}`] || { advance: 0 };
         document.getElementById('employee-modal-title').textContent = `Editar: ${u.name}`;
         document.getElementById('emp-id').value = u.id;
         document.getElementById('emp-name').value = u.name;
-        document.getElementById('emp-position').value = u.position;
+        document.getElementById('emp-position').value = u.position || '';
         document.getElementById('emp-username').value = u.username;
         document.getElementById('emp-password').value = '';
         document.getElementById('emp-password').placeholder = 'Vacío = no cambiar';
-        document.getElementById('emp-role').value = u.role;
-        document.getElementById('emp-expenses').checked = u.role === 'admin' || u.expensesEnabled === true;
+        populateRoleSelect(u.role);
+        document.getElementById('emp-expenses').checked = u.expensesEnabled === true;
         document.getElementById('emp-salary').value = userId === currentUser.id ? u.baseSalary : '';
-        document.getElementById('emp-shift-name').value = u.shiftName;
-        document.getElementById('emp-shift-hours').value = u.shiftHours;
-        document.getElementById('emp-shift-days').value = u.shiftDays;
+        document.getElementById('emp-shift-name').value = u.shiftName || '';
+        document.getElementById('emp-shift-hours').value = u.shiftHours || '';
+        document.getElementById('emp-shift-days').value = u.shiftDays || '';
         document.getElementById('emp-advance').value = userId === currentUser.id ? (meta.advance || 0) : 0;
       } else {
         document.getElementById('employee-modal-title').textContent = 'Nuevo Colaborador';
         document.getElementById('employee-form').reset();
         document.getElementById('emp-password').placeholder = 'Contraseña';
         document.getElementById('emp-id').value = '';
-        document.getElementById('emp-salary').value = appState.config.defaultSalary;
+        document.getElementById('emp-salary').value = '';
+        populateRoleSelect('individual');                 // por defecto el rol más privado
       }
+      // Al crear, todo arranca en cero: el propio usuario cargará su salario y sus horarios
+      document.getElementById('emp-position-wrap').classList.toggle('hidden', isNew);
+      document.getElementById('emp-shift-grid').classList.toggle('hidden', isNew);
       const showMoney = !!userId && userId === currentUser.id;
       document.getElementById('emp-salary-row').classList.toggle('hidden', !showMoney);
       document.getElementById('emp-advance-row').classList.toggle('hidden', !showMoney);
@@ -3034,29 +3226,37 @@ button.exp-switch{min-width:46px;min-height:26px}
 
     document.getElementById('employee-form').addEventListener('submit', function (e) {
       e.preventDefault();
+      if (!currentUser || currentUser.role !== 'admin') { showToast('Solo un administrador puede gestionar usuarios', 'error'); return; }
       const id = document.getElementById('emp-id').value;
       const monthStr = document.getElementById('period-month-picker').value || getCurrentMonthStr();
       const prevU = id ? appState.users.find(x => x.id === id) : null;
+      const isNew = !prevU;
       const isSelfEdit = !!(id && currentUser && id === currentUser.id);
+
+      // Roles permitidos: Jefa / Operador / Individual (Administrador solo si ya lo era)
+      const role = document.getElementById('emp-role').value;
+      const allowedRoles = ['boss', 'operator', 'individual'].concat(prevU && prevU.role === 'admin' ? ['admin'] : []);
+      if (!allowedRoles.includes(role)) { showToast('Rol no válido', 'error'); return; }
+
       const user = {
         id: id || 'u-' + Date.now(),
         name: document.getElementById('emp-name').value.trim(),
-        position: document.getElementById('emp-position').value.trim(),
+        position: isNew ? '' : document.getElementById('emp-position').value.trim(),
         username: document.getElementById('emp-username').value.trim().toLowerCase(),
         password: document.getElementById('emp-password').value.trim() || (id ? (appState.users.find(x => x.id === id) || {}).password : ''),
-        role: document.getElementById('emp-role').value,
+        role,
+        // Usuario nuevo = en cero: sin salario, sin horarios (lo carga él mismo al entrar). Nada precargado.
         baseSalary: isSelfEdit ? (Number(document.getElementById('emp-salary').value) || prevU.baseSalary) : (prevU ? prevU.baseSalary : 0),
-        shiftName: document.getElementById('emp-shift-name').value.trim(),
-        shiftHours: document.getElementById('emp-shift-hours').value.trim(),
-        shiftDays: document.getElementById('emp-shift-days').value.trim(),
+        shiftName: isNew ? '' : document.getElementById('emp-shift-name').value.trim(),
+        shiftHours: isNew ? '' : document.getElementById('emp-shift-hours').value.trim(),
+        shiftDays: isNew ? '' : document.getElementById('emp-shift-days').value.trim(),
         expensesEnabled: document.getElementById('emp-expenses').checked
       };
       if (!user.password) { showToast('Define una contraseña', 'error'); return; }
       if (appState.users.some(x => x.username === user.username && x.id !== user.id)) { showToast('Ese usuario ya existe', 'error'); return; }
-      const prev = id && appState.users.find(x => x.id === id);
-      if (prev && prev.role === 'admin' && user.role !== 'admin' && appState.users.filter(x => x.role === 'admin').length < 2) { showToast('Debe quedar al menos un administrador', 'error'); return; }
-      if (id && currentUser && id === currentUser.id) currentUser = user;
-      if (id) {
+      if (prevU && prevU.role === 'admin' && user.role !== 'admin' && appState.users.filter(x => x.role === 'admin').length < 2) { showToast('Debe quedar al menos un administrador', 'error'); return; }
+      if (isSelfEdit) currentUser = user;
+      if (prevU) {
         const idx = appState.users.findIndex(x => x.id === id);
         if (idx !== -1) appState.users[idx] = user;
       } else appState.users.push(user);
@@ -3066,7 +3266,7 @@ button.exp-switch{min-width:46px;min-height:26px}
       populateUserSelectors();
       closeEmployeeModal();
       renderAll();
-      showToast('Colaborador guardado');
+      showToast(isNew ? `${roleLabel(role)} creado: deberá cargar su salario al ingresar` : 'Colaborador guardado');
     });
 
     function loadSettingsIntoForm() {
@@ -3143,7 +3343,7 @@ button.exp-switch{min-width:46px;min-height:26px}
 
   /* Contadores animados en KPIs */
   const ease = t => 1 - Math.pow(1 - t, 3);
-  ['kpi-base-salary', 'kpi-night-bonus', 'kpi-overtime-bonus', 'kpi-net-total', 'admin-total-payroll', 'admin-total-bonuses', 'admin-total-employees'].forEach(id => {
+  ['kpi-base-salary', 'kpi-night-bonus', 'kpi-overtime-bonus', 'kpi-net-total', 'admin-total-payroll', 'admin-total-bonuses', 'admin-total-employees', 'exp-kpi-balance', 'exp-kpi-credited'].forEach(id => {
     const el = $(id); if (!el) return;
     let target = 0, shown = 0, raf = 0;
     const obs = new MutationObserver(() => {
@@ -3179,13 +3379,15 @@ button.exp-switch{min-width:46px;min-height:26px}
   addEventListener('resize', () => { const p = $('tab-pill'); if (p && p.dataset.tab) movePill(p.dataset.tab); });
   if (document.fonts) document.fonts.ready.then(() => { const p = $('tab-pill'); if (p && p.dataset.tab) movePill(p.dataset.tab); });
 
-  /* Transición suave entre vistas */
+  /* Transición entre vistas: sale en fundido y la nueva entra deslizándose según la dirección de la pestaña */
   const _switch = switchTab;
   let lock = 0;
+  const tabOrder = () => Array.from(document.querySelectorAll('.tab-btn[data-tab]')).map(b => b.dataset.tab);
   switchTab = function (name) {
     const cur = document.querySelector('.tab-content:not(.hidden)'), next = $('section-' + name);
     if (!cur || cur === next || RM) { _switch(name); movePill(name); return; }
-    const token = ++lock;
+    const token = ++lock, order = tabOrder();
+    const dir = order.indexOf(name) >= order.indexOf(cur.id.replace('section-', '')) ? 'slide-r' : 'slide-l';
     movePill(name);
     cur.classList.add('tab-out');
     setTimeout(() => {
@@ -3193,6 +3395,11 @@ button.exp-switch{min-width:46px;min-height:26px}
       cur.classList.remove('tab-out');
       _switch(name);
       movePill(name);
+      if (next) {
+        next.classList.remove('slide-r', 'slide-l'); void next.offsetWidth; next.classList.add(dir);
+        setTimeout(() => next.classList.remove('slide-r', 'slide-l'), 520);
+      }
+      window.scrollTo(0, 0);
     }, 120);
   };
 
@@ -3256,38 +3463,68 @@ button.exp-switch{min-width:46px;min-height:26px}
 
   </script>
   <script>
-/* Bottom sheets: bloqueo de scroll + deslizar hacia abajo para cerrar */
+/* Bottom sheets: bloqueo de scroll + arrastre hacia abajo con velocidad, fundido de fondo y cierre animado */
 (() => {
   const $ = id => document.getElementById(id), ids = ['employee-modal', 'receipt-modal'], mq = matchMedia('(max-width:767px)');
+  const vib = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
   const lock = () => { document.body.style.overflow = ids.some(i => !$(i).classList.contains('hidden')) ? 'hidden' : ''; };
+  const closers = { 'employee-modal': () => closeEmployeeModal(), 'receipt-modal': () => closeReceiptModal() };
+  const bdColor = m => { const c = getComputedStyle(m).backgroundColor.match(/[\d.]+/g); return c && c.length >= 3 ? { r: c[0], g: c[1], b: c[2], a: c.length > 3 ? +c[3] : 1 } : null; };
+
   ids.forEach(id => {
     const m = $(id), s = m.firstElementChild;
     new MutationObserver(lock).observe(m, { attributes: true, attributeFilter: ['class'] });
-    let y0 = null, dy = 0;
+    let mode = 'idle', x0 = 0, y0 = 0, dy = 0, lastY = 0, lastT = 0, v = 0, fromHandle = false, bd = null;
+
+    const setBackdrop = a => { if (bd) m.style.backgroundColor = `rgba(${bd.r},${bd.g},${bd.b},${a})`; };
+    const reset = () => { s.style.transform = s.style.transition = s.style.animation = ''; m.style.backgroundColor = m.style.transition = ''; };
+
     s.addEventListener('touchstart', e => {
-      if (!mq.matches) return;
+      if (!mq.matches || e.touches.length !== 1) { mode = 'idle'; return; }
       const t = e.touches[0];
-      if (t.clientY - s.getBoundingClientRect().top < 40) { y0 = t.clientY; dy = 0; s.style.transition = 'none'; }
+      x0 = t.clientX; y0 = lastY = t.clientY; lastT = e.timeStamp; dy = 0; v = 0;
+      fromHandle = t.clientY - s.getBoundingClientRect().top < 56;      // zona del "agarradero"
+      mode = (fromHandle || s.scrollTop <= 0) ? 'pending' : 'scroll';   // si el contenido está desplazado, gana el scroll
     }, { passive: true });
+
     s.addEventListener('touchmove', e => {
-      if (y0 === null) return;
-      dy = Math.max(0, e.touches[0].clientY - y0);
-      s.style.transform = `translateY(${dy}px)`;
-    }, { passive: true });
-    s.addEventListener('touchend', () => {
-      if (y0 === null) return;
-      y0 = null;
-      s.style.transition = 'transform .3s cubic-bezier(.32,.72,0,1)';
-      if (dy > 90) {
-        s.style.animation = 'none';
-        s.style.transform = 'translateY(100%)';
-        (id === 'employee-modal' ? closeEmployeeModal : closeReceiptModal)();
-        setTimeout(() => { s.style.transform = s.style.transition = s.style.animation = ''; }, 450);
-      } else {
-        s.style.transform = '';
-        setTimeout(() => { s.style.transition = ''; }, 300);
+      if (mode === 'idle' || mode === 'scroll') return;
+      const t = e.touches[0];
+      if (mode === 'pending') {
+        const ddy = t.clientY - y0, ddx = t.clientX - x0;
+        if (Math.abs(ddy) < 4 && Math.abs(ddx) < 4) return;
+        if (ddy > 0 && Math.abs(ddy) > Math.abs(ddx) && (fromHandle || s.scrollTop <= 0)) {
+          mode = 'drag'; s.style.transition = 'none'; s.style.animation = 'none'; bd = bdColor(m);
+        } else { mode = 'scroll'; return; }
       }
-    });
+      if (e.cancelable) e.preventDefault();                              // evita que el contenido haga scroll a la vez
+      dy = Math.max(0, t.clientY - y0);
+      const dt = e.timeStamp - lastT;
+      if (dt > 0) v = (t.clientY - lastY) / dt;                          // px/ms
+      lastY = t.clientY; lastT = e.timeStamp;
+      s.style.transform = `translateY(${dy}px)`;
+      if (bd) setBackdrop((bd.a * (1 - Math.min(1, dy / Math.max(1, s.offsetHeight)))).toFixed(3));
+    }, { passive: false });
+
+    const end = () => {
+      if (mode !== 'drag') { mode = 'idle'; return; }
+      mode = 'idle';
+      const far = dy > Math.min(160, s.offsetHeight * 0.3), fast = v > 0.55 && dy > 30;
+      if (far || fast) {
+        s.style.transition = 'transform .28s cubic-bezier(.32,.72,0,1)';
+        s.style.transform = 'translateY(100%)';
+        vib(8);
+        closers[id]();
+        setTimeout(reset, 450);
+      } else {
+        s.style.transition = 'transform .32s cubic-bezier(.32,.72,0,1)';
+        s.style.transform = '';
+        if (bd) { m.style.transition = 'background-color .3s'; setBackdrop(bd.a); }
+        setTimeout(reset, 340);
+      }
+    };
+    s.addEventListener('touchend', end);
+    s.addEventListener('touchcancel', end);
   });
 })();
 
@@ -3331,6 +3568,82 @@ button.exp-switch{min-width:46px;min-height:26px}
   if (nav) nav.addEventListener('pointerdown', e => {
     if (e.target.closest('.tab-btn') && navigator.vibrate) navigator.vibrate(8);
   });
+})();
+  </script>
+  <script>
+/* ===== CAPA NATIVA MÓVIL: viewport visual, teclado y micro-interacciones ===== */
+(() => {
+  const $ = id => document.getElementById(id), root = document.documentElement;
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, mobile = matchMedia('(max-width:767px)');
+  const vib = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+
+  /* Viewport visual: la hoja (bottom-sheet) se ajusta a lo que queda visible sobre el teclado (iOS y Android) */
+  const vv = window.visualViewport;
+  const syncVV = () => { root.style.setProperty('--vvh', (vv ? vv.height : innerHeight) + 'px'); root.style.setProperty('--vvt', (vv ? vv.offsetTop : 0) + 'px'); };
+  if (vv) { vv.addEventListener('resize', syncVV); vv.addEventListener('scroll', syncVV); }
+  addEventListener('resize', syncVV);
+  addEventListener('orientationchange', () => setTimeout(syncVV, 250));
+  syncVV();
+
+  /* Teclado abierto: se esconde el dock inferior y el campo enfocado se centra en pantalla */
+  const isField = el => !!el && !!el.matches && el.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=range]), select, textarea');
+  document.addEventListener('focusin', e => {
+    if (!isField(e.target) || !mobile.matches) return;
+    root.classList.add('kb-open');
+    const t = e.target;
+    setTimeout(() => { if (document.activeElement === t) t.scrollIntoView({ block: 'center', behavior: RM ? 'auto' : 'smooth' }); }, 320);
+  });
+  document.addEventListener('focusout', () => setTimeout(() => { if (!isField(document.activeElement)) root.classList.remove('kb-open'); }, 80));
+
+  /* Botón de envío: confirmación visual breve */
+  function okBtn(btn) {
+    if (!btn || btn.dataset.ok) return;
+    btn.dataset.ok = '1';
+    const html = btn.innerHTML;
+    btn.classList.add('btn-ok');
+    btn.innerHTML = '<i class="fa-solid fa-check"></i><span>¡Listo!</span>';
+    setTimeout(() => { btn.classList.remove('btn-ok'); btn.innerHTML = html; delete btn.dataset.ok; }, 1100);
+  }
+
+  /* Al registrar un turno o un gasto: la tarjeta nueva entra con rebote + halo, el botón confirma y vibra (Android) */
+  const idNum = id => { const m = String(id).match(/(\d{10,})/); return m ? +m[1] : 0; };
+  [['shift-form', 'shifts-list', '.shift-card'], ['exp-form', 'exp-list', '.exp-item']].forEach(([formId, listId, itemSel]) => {
+    const form = $(formId), list = $(listId);
+    if (!form || !list) return;
+    const ids = () => Array.from(list.querySelectorAll(itemSel + '[data-id]')).map(el => el.dataset.id);
+    let pending = null;
+    document.addEventListener('submit', e => {                               // captura en document: corre antes que el manejador del formulario
+      if (e.target === form) pending = { t: Date.now(), before: new Set(ids()), btn: form.querySelector('button[type=submit]') };
+    }, true);
+    new MutationObserver(() => {
+      if (!pending) return;
+      if (Date.now() - pending.t > 2500) { pending = null; return; }
+      const fresh = Array.from(list.querySelectorAll(itemSel + '[data-id]')).filter(el => !pending.before.has(el.dataset.id));
+      if (!fresh.length) return;                                              // envío rechazado (validación) o aún sin render
+      fresh.sort((a, b) => idNum(b.dataset.id) - idNum(a.dataset.id));
+      const el = fresh[0], p = pending; pending = null;
+      okBtn(p.btn); vib(14);
+      if (RM) return;
+      el.classList.add('item-new');
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      setTimeout(() => el.classList.remove('item-new'), 1200);
+    }).observe(list, { childList: true });
+  });
+
+  /* Al borrar: la tarjeta sale deslizándose y recién entonces se elimina el dato */
+  const wrapDelete = (name, sel) => {
+    const orig = window[name];
+    if (typeof orig !== 'function') return;
+    window[name] = function (id) {
+      const el = document.querySelector(`${sel}[data-id="${CSS.escape(String(id))}"]`);
+      if (RM || !el) return orig.apply(this, arguments);
+      if (el.classList.contains('item-out')) return;
+      el.classList.add('item-out'); vib(10);
+      setTimeout(() => orig.call(this, id), 230);
+    };
+  };
+  wrapDelete('deleteShift', '.shift-card');
+  wrapDelete('deleteExpense', '.exp-item');
 })();
   </script>
 </body>
